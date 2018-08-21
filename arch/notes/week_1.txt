@@ -1,0 +1,14 @@
+overview
+  lecture notes will be the primary resource
+  textbook a reference
+  exams are open book open laptop
+  homework latex submissions
+
+challenges
+  not enough energy to power on all multi-billion transistors
+    dark silicon - part of chip that can't be turned on due to energy limitations
+  bandwidth
+    processing massive data
+  security
+    side channel attacks
+
