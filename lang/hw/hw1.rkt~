@@ -1,0 +1,14 @@
+#lang plait
+
+(define-type tree
+  (leaf [val : Number])
+  (node [val : Number]
+        [left : Tree]
+        [right : Tree]))
+
+; Part 1 - Sum
+(define (Sum [t : Tree]) : Number
+  10)
+
+
+(test (sum (node 5 (leaf 6) (leaf 7))) 18)

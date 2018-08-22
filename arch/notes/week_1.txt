@@ -11,4 +11,52 @@ challenges
     processing massive data
   security
     side channel attacks
+  energy and power are the current limiting factors
 
+measuring performance
+  latency or response time
+    job start to finish time
+  bandwidth or throughput
+    how many jobs can you finish in a given unit of time (ex. FLOPS) 
+  determine the goals of your application and decide what you want to optimize
+  measure performance on a set of representative programs that are likely relevant to the user
+  arithmetic mean good for times and latencies
+  harmonic mean good for throughput and rates
+  geometric mean good for speedups
+    when metric of all machines is normalized by the performance on a given machine
+    comparing performance across machines or chips
+  CT - clock cycle time (1 / clock frequency)
+  CPI - cycles per instruction
+  IC - instruction count
+  IPC - instructions per cycle
+  CPU time - IC x CPI x CT
+  clock signal is a square wave (either on or off)
+    a way to syncronize
+  the fastest time possible for one operation is a single clock cycle
+    some operations require multiple clock cycles
+  in this class performance is defined as (1 / execution time)  
+  speedup - old execution time / new execution time
+  improvement = (new performance - old performance) / old performance
+  Amdahl's law - see slides
+
+CPU Power and Energy
+  Power - voltage x current
+    instantaneous rate of energy transfer (watt)
+  Energy - Power x Time
+    the cost of performing a task (joule)
+  CPU power is the rate of heat generation
+  Excessive peak power may result in burning the chip
+  static power is the constant power that is burned regardles (voltage x current_static)
+  dynamic power is related to the activity (changing from 0 to 1 or vice versa) of your gates
+    charging or discharging a wire to change the input to the gate
+
+principles of computer design
+  parallelism
+    multiple units for executing partial or complete tasks
+  principle of locality (temporal and spatial)
+    reuse data and functional units
+  common case
+    use additional resources to improve the common case
+    prioritize most commonly used operations with deciding what to do with chip resources
+    must also consider the worst case to address security problems
+      this is similar to real-time applications in that we must consider the worst case
