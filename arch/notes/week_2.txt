@@ -1,0 +1,42 @@
+power reduction techniques
+  reducing capacitance
+    requires changes to physical layout and technology
+  reducing voltage
+    negative effect on frequency
+    opportunistically power gating (wakeup time)
+    dynamic voltage and frequency scaling
+      trade performance to reduce power usage
+  reducing frequency
+    negative effect on CPU time
+    clock gating in unused resources
+  points to note
+    utilization directly effects dynamic power
+    lowering power does not mean lowering energy
+
+dependability
+  system reliability
+    mean time to failure (MTTF)
+    mean time to repair (MTTR)
+    system availability
+      MTFF / (MTTF + MTTR)
+
+instruction set architecture
+  well-defined interfacing contract between hardware and software
+  defines
+    the functional operations of units
+    how to use each function unit
+  does not define
+    how functional units are implemented
+    execution time of operations
+    energy consumption of operations
+  two approaches
+    complex instruction set commputing (CISC)
+      could be better for a specific domain
+      CPU time may be increased
+      hard code generation
+    reduced instruction set computing (RISC)
+      better if memory is a bottleneck
+      good for general purpose
+      CPU time may be decreased
+      easy code generation
+
