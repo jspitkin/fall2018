@@ -39,4 +39,69 @@ instruction set architecture
       good for general purpose
       CPU time may be decreased
       easy code generation
+  memory addressing
+    types
+      register - Add r4, r3
+        labeled with an 'r' for integer register file
+        labeled with an 'f' for floating-point register file
+        r0 always contains zero
+      immediate - Add r4, #3
+        #3 is a constant
+      displacement - Add r4, 100(r1)
+        100 is a constant
+        100(r1) is an index into main memory
+        effective address - address in main memory
+      register indirect - Add r4, (r1)
+        equiv to Add r4, 0(r1)
+      indexed - Add r3, (r1 + r2)
+        combining two registers to form an effective address
+        bits are limited in instruction encoding
+          a large value can be stored across two registers
+      direct - Add r1, (1001)
+        memory location known at programming time, directly provided to the instruction
+      memory indirect - Add r1, @(r3)
+        the address to memory is stored in memory at the address in r3
+      auto-increment - Add r1, (r2)+
+        post increment by one word size after acessing the effective address stored in r2
+        can also pre increment +(r2)
+      auto-decrement - Add r1, -(r2)
+        similar to auto-increment
+      Scaled - Add r1, 100(r2)[r3]
+        Mem[100 + Reg[2] + Reg[3] x word_size]
+    the bigger a memory unit the slower it operates as a general rule
+    in homework update the contents of registers and memory as each instruction is handled
+  instruction format
+    a guideline for generating/interpreting instructions
+    MIPS
+      fixed size 32-bit instructions
+      three opcode types
+        I-type: load, store, conditional branch
+          Opcode, RS, RT, Immediate
+        R-type: ALU operations
+          Opcode, RS, RT, RD, ShAmnt, Funct
+        J-type: jump
+          Opcode
 
+pipelining introduction
+  every RISC instruction may require multiple processing steps
+  processor
+    function units
+    register file
+  memory
+    instructions
+    data
+  five basic steps for executing a program
+    instruction fetch (IF)
+      move instruction from memory to processor
+      check PC (program counter) to see what instruction is next
+      move instruction to IR (instruction register)
+    instruction decode (ID)
+      look at instruction and create control signals used inside processor core
+    register read (RR)
+      read operands of instruction (if needed)
+    execute instructions (EXE)
+      execute the instruction
+    memory access (MEM)
+      access memory if instruction requires
+      in RISC only load and store access the memory
+    register write back (WB)

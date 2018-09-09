@@ -1,0 +1,203 @@
+\documentclass[a4paper, 15pt]{exam}
+\usepackage{titling}
+\usepackage{graphicx}
+
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\large#1\end{center}
+    }%
+}
+
+\usepackage{url}
+\usepackage{amsmath,amsthm,enumitem,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\renewcommand{\labelenumii}{\roman{enumii}}
+
+\title{Homework Assignment 12}
+\subtitle{CS/ECE 6810: Computer Architecture \\
+Sep 5th,2018}
+
+\author{ \\
+\textbf{Performance Metrics, ISA, Basic Pipelining
+}}
+\date{Due Date: Sep 12, 2018 11:59 pm.\\
+100 points}
+
+\begin{document}
+\maketitle
+\begin{center}
+\fbox{\fbox{\parbox{5.9in}{\centering
+Important Notes:
+\begin{itemize}
+\item Solutions turned in must be your own. Please, mention references (if any) at the end of each question. Please refrain from cheating.
+\item All solutions must be accompanied by the equations used/logic/intermediate steps. Writing only the final answer will receive \textbf{zero} credit.
+\item All units must be mentioned wherever required.
+\item Late submissions \textbf{(after 11:59 pm on 09/12/2018)} will not be accepted
+\item All submissions must be in PDF only. Scanned copies of handwritten solutions will not be accepted as a valid submission.
+\item Question 6 is a bonus question 
+\end{itemize}
+}}}
+\end{center}
+\vspace{0.2in}
+
+\begin{enumerate}
+	\item \textbf {Performance Optimization.}
+   The table below shows the frequencies and cycle counts for all types of instructions used by program A on a computer system P. We observed that 50\% of the executed MULT instructions are followed by an ADD. Therefore, we propose a new processor with a fused-MULT-ADD (FMAD) instruction that executes a merged MULT and ADD in 5 cycles.
+
+
+   \begin{center}
+\begin{tabular}{ |c|c|c|c|c|c| } 
+ \hline
+  & LOAD & STORE & BRANCH & ADD & MULT \\ 
+  \hline
+ Frequency & 15\% & 15\% & 10\% & 20\% & 40\% \\ 
+ Cycles & 1 & 1 & 2 &4 & 5 \\ 
+
+\hline
+\end{tabular}
+\end{center}
+	\begin{enumerate}
+    \item Compute the instructions per cycle (IPC) for the new and old processors. \textbf{(10 points)}
+        \item What is the speedup/slowdown gained through the proposed optimization?  \textbf{(5 points)}
+
+	\end{enumerate}
+    \item \textbf{Execution Time.} A computer system has three instruction classes as shown in the following table.
+\begin{center}
+\begin{tabular}{ |c|c|} 
+ \hline
+  
+  Class&CPI\\ 
+  \hline
+ A&1\\ 
+ \hline
+ B&2\\ 
+ \hline
+ C&3\\ 
+ \hline
+\end{tabular}
+\end{center}
+We execute two programs (P1 and P2) on this computer system. The following table shows the number of executed instructions for different classes.
+
+\begin{center}
+\begin{tabular}{ |c|c|c|c|} 
+ \hline
+  
+  Program&A&B&C\\ 
+  \hline
+ P1&200&100&200\\ 
+ \hline
+ P2&400&100&100\\ 
+ \hline
+ 
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item What is the CPI and IPC of P1 and P2?
+\textbf{(10 points)}
+\item Suppose that the computer operates at 1GHz clock frequency; compute the execution times of P1 and P2?
+ \textbf {(10 points)}
+
+\end{enumerate}
+    \item \textbf{Power and Energy.} A general purpose processor is operated at a 2GHz clock frequency with a 5V voltage supply. Suppose that the average load capacitance of all internal gates is 12pF. The static current driven from the supply is 5A and the logic gates exhibit an average activity of 0.8 switchings per cycle.
+    \begin{enumerate}
+    \item Compute the static and dynamic power of the processor. \textbf{(10 points)}
+        \item If the voltage is scaled down by 50\% and the frequency is scaled up by 25\%, calculate the percentage increase/decrease in the total system power.   \textbf{(10 points)}
+        \item If the frequency is scaled down by 50\% of its initial value and the dynamic power along with the output current remains the same, calculate the percentage increase/decrease in the total system power.  \textbf{(10 points)}
+        
+
+	\end{enumerate}
+
+ \item \textbf{Instruction Set Architecture.} Initial values of the architectural registers and memory are given below in the following tables. Compute the effective address and final the result for each of the following instructions. \textit{All instructions are executed serially.} Register value changes are considered when moving from one instruction to another. List the final values of all the registers. \textbf{(20 points)}
+ 
+ \begin{center}
+ 	\begin{tabular}{ |c|c|c|c|c|c|c|c|} 
+ 		\hline
+ 		R0 & R1 & R2& R3 & R4 &R5&R6\\ 
+ 		\hline
+ 		1000 & 50 & 2000 & 5000 &0 & 0 & 0\\ 
+ 		\hline
+ 	\end{tabular}
+ \end{center}
+ 
+ \begin{center}
+ 	\begin{tabular}{ |c|c|c|c|c|c|c|c|c|} 
+ 		\hline
+ 		
+ 		Address&1000 & 2000 & 3000& 4000 & 5000 \\ 
+ 		\hline
+ 		Value&1000 & 4000 & 3000 & 5000 & 2000 \\ 
+ 		\hline
+ 	\end{tabular}
+ \end{center}
+ 
+% \textbf{Instructions}
+ \verb|LOAD R5, 3000(R0)|
+\\ \verb|ADD R4, @(R5)|
+\\ \verb|SUB R2, R4|
+\\ \verb|LOAD R6, 1000(R0)|
+\\ \verb|ADD R6, R2|
+\\ \verb|SUB R5, R6|
+\\ \verb|ADD R2, R5|
+\\ \verb|ADD R2, R3|
+
+
+\item \textbf{Pipelining.} We design a simple microprocessor core that implements five operations similar to those of the basic MIPS architecture. The delays of these operations are 36ns, 39ns, 23ns, 28ns and 64ns. Consider designing both non-pipelined and pipelined versions of the microprocessor. (Inserting a pipeline register between operations adds 1ns to the critical path delay.) What is the maximum achievable speedup of the pipelined version over non-pipelined architecture when executing a large number of instructions (n$>>$5)? \textbf{(15 points)}
+
+\item \textbf{Bonus Question.} 
+Data transmission on a limited number of wires is crucial to power and performance of computer systems. Two popular communication techniques are called \textit{parallel} and \textit{serial} shown in Figure 1 (a) and (b).
+Suppose that all wires are holding zeroes prior to transferring data. With the parallel communication, we are using eight physical wires to transfer eight bit values in one cycle. In the serial communication, we use only one physical wire to send 8 bit values in 8 cycles.
+\begin{center}
+ \makebox[\textwidth]{\includegraphics[width=0.5\paperwidth]{Q6-Figure.pdf}}
+\end{center}
+
+
+
+
+We propose a new encoding method that needs three wires--two for data and one for reset. Every data byte is divided into two four-bit \textit{chunks}. Each chunk is transferred by toggling one of the two data wires (Data [0] and Data [1] in Figure 1). The reset wire is shared by all data wires to specify the start of the data transmission (before the transmission of one data byte).  The number of clock cycles between the reset signal and a bit-flip on a data wire represents the chunk value. We use a counter that starts counting as soon as a transition appears on the reset wire. The contents of the counter on every data transition represents the chunk value.
+
+
+Suppose that we have three applications A, B, and C transferring data on the memory interface. The following table shows the transferred data for each application.
+(Least significant bits, chunks, and bytes are transferred first.)
+\begin{center}
+\begin{tabular}{ |c|c|} 
+ \hline
+  
+  Application &Data Value\\ 
+  \hline
+ A&11001010 01110011 11000001\\ 
+ \hline
+ B&
+00011010 01110011 11001001
+\\ 
+ \hline
+ C&
+01010101 01010101 01010101
+\\ 
+ \hline
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item Compute the total number of switchings on the wires for each application when using the serial, parallel, and the proposed techniques.
+\textbf{(5 points)}
+\item Suppose that the only parameter that changes during data transmission using these techniques is the number of bit flips (i.e., the wire capacitance and voltage supply are fixed). Compute the relative dynamic power of these techniques to serial communication.
+%consumed for transferring data with these three approaches. 
+\textbf {(5 points)}
+%\item Compare the amount of energy consumed for transferring data with these three approaches if we normalize the value to the serial encoding approach. Which one is the best? At least give one example of disadvantage of the method that give us the best energy number? \textbf{(10 points)}
+\item Compute the energy-delay-product of these techniques normalized to the serial communication.
+%sending data with these three approaches if we normalize the value to the serial encoding approach. Which one is the best? 
+\textbf{(5 points)}
+\item  Give three bytes data value which will lead to worst case execution time for the proposed method. 
+\textbf{(5 points)}
+%\item On-chip interconnects are a main contributor to the processor energy. Besides, Last Level Caches (LLCs) incur considerable delay and energy overheads through transferring data over wires. Typically, LLCs consume about 15\% of the total processor energy. Inside LLCs, interconnections are the major source of energy consumption (about 80\%).
+%      Suppose that we want to send data value of the three applications over the L2 interconnects. 
+% How much processor energy will be saved (or wasted) if we transfer data these three               approaches and normalize the value to the binary encoding approach. 
+%
+%\textbf{(7 points)}
+
+\end{enumerate}
+\end{enumerate}
+
+
+\end{document}

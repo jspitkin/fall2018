@@ -1,0 +1,51 @@
+Pipelining
+  imporving throughput at the expense of latency
+    Delay D = T + n*delta
+    Throughput: IPS = n/(T + n*delta)
+  latch
+    separates parts of a pipeline
+    consumes more transistors, energy, and time
+
+Five stage MIPS pipeline
+  instruction fetch
+    read an instruction from memory (I-Memory)
+    use the PC to index into the I-memory
+    compute NPC by incrementing current PC
+      NPC - next program counter
+    update pipeline registers
+  instruction decode
+    generate control signals for the opcode bits
+    read source operands from the register file (RF)
+    use the specifiers for indexing RF
+    not executing the instruction yet
+  execute stage
+    compute the result of ALU
+  memory access
+    load or store the outcome of the ALU
+    control signals determine read or write access
+    can send 'target' back to 'instruction fetch' phase
+    the input for a store or the output of a load is always a register
+    for some instructions (eg add) all we do is forward the result to the latch
+  writeback
+    write results to register file
+
+Pipeline Hazards
+  structural hazards
+    multiple instructions compete for the same resource 
+    identifying structural hazards
+      identify shared resources
+        register file
+          first half of the cycle for writes and second half for reads
+          wait if needed
+        memory
+          instead of unified memory use instruction memory and data memory
+          wait if needed
+  data hazards
+    a dependent instruction cannot proceed because it needs a value that hasn't been produced
+    identifying data hazards
+      an instruction is dependent on a dest register of a prev instruction
+        wait
+        register bypassing
+          don't wait until written into register, forward it
+  control hazards
+    the next instruction cannot be fetched because the outcome of an earlier branch is unknown
