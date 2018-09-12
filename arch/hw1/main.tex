@@ -113,7 +113,6 @@ Using this table we can calculate the ICP as we did above:
    	The new processor provides a speedup of $1.32$ compared to the old processor.
 
 	\end{enumerate}
-	\newpage
     \item \textbf{Execution Time.} A computer system has three instruction classes as shown in the following table.
 \begin{center}
 \begin{tabular}{ |c|c|} 
@@ -175,7 +174,6 @@ $$\text{IPC =}\frac{1}{\text{CPI}}$$
    			&= \fbox{0.667}
    	\end{align*}
    	
-\newpage
 \item Suppose that the computer operates at 1GHz clock frequency; compute the execution times of P1 and P2? 
  \textbf {(10 points)} \\
 We can calculate CPU time using the following formulas:
@@ -223,7 +221,7 @@ $$\text{CPU Time = IC * CPI * CT}$$
    			&= 5V * 5A \\
    			&= \fbox{25W}
    	\end{align*}
-   	\newpage
+
    	\textbf{Dynamic Power:} We are given the capacitance is 12pF, the voltage is 5V, the activity is 0.8, and the frequency 2GHz.
    	\begin{align*} 
    			Power_{Dynamic} &\propto Capacitance * Voltage^2 * (Activity * Frequency) \\
@@ -254,8 +252,28 @@ $$\text{CPU Time = IC * CPI * CT}$$
    			&= \fbox{50.36\% \ decrease}
    	\end{align*}
         \item If the frequency is scaled down by 50\% of its initial value and the dynamic power along with the output current remains the same, calculate the percentage increase/decrease in the total system power.  \textbf{(10 points)} \\
-      \fbox{\textbf{TODO}}
-        
+      If the frequency is scaled down by $50\%$ we have a new frequency of 1GHz and the dynamic power, capacitance (from Canvas discussion), activity (from Canvas discussion), and output current remains the same. To calculate the new power, we need to solve for the unknown which is the voltage.
+      
+      \begin{align*}
+   			Power_{Dynamic} &= C * V^2 * (\alpha * f)\\
+   			0.48W &= 12pF * V^2 * (0.8 * 1GHz) \\
+   			V^2 &= \frac{0.48W}{12pF * (0.8 * 1GHz)} \\
+   			V^2 &= \frac{0.48}{0.0096} \\
+   			V^2 &= 50 \\
+   			V &= 7.07
+   	\end{align*}
+   	Given voltage is 7.07, we can solve for the static power of the new processor as well as the total power. With this we can calculate the increase or decrease in power.
+   	
+   	\begin{align*}
+   	New \ Power_{Static} &= Voltage * Current_{Static} \\
+   			&= 7.07V * 5A \\
+   			&= 35.35W \\ \\	
+   	New \ Power &= 35.35W + 0.48W \\
+   	&= 35.83W \\ \\
+   	   			percentage \ increase &= 1 - \frac{35.83}{25.48W} \\
+   			&= 1 - 1.406 \\
+   			&= \fbox{40.6\% \ increase}
+   	\end{align*}
 
 	\end{enumerate}
 
