@@ -15,32 +15,16 @@
 \usepackage{hyperref}
 \renewcommand{\labelenumii}{\roman{enumii}}
 
-\title{Homework Assignment 12}
-\subtitle{CS/ECE 6810: Computer Architecture \\
-Sep 5th,2018}
+\title{Homework Assignment 1}
+\subtitle{CS/ECE 6810: Computer Architecture}
 
-\author{ \\
-\textbf{Performance Metrics, ISA, Basic Pipelining
-}}
-\date{Due Date: Sep 12, 2018 11:59 pm.\\
-100 points}
+\author{
+\textbf{Jake Pitkin u0891770} \\ \\
+Performance Metrics, ISA, Basic Pipelining}
+
 
 \begin{document}
 \maketitle
-\begin{center}
-\fbox{\fbox{\parbox{5.9in}{\centering
-Important Notes:
-\begin{itemize}
-\item Solutions turned in must be your own. Please, mention references (if any) at the end of each question. Please refrain from cheating.
-\item All solutions must be accompanied by the equations used/logic/intermediate steps. Writing only the final answer will receive \textbf{zero} credit.
-\item All units must be mentioned wherever required.
-\item Late submissions \textbf{(after 11:59 pm on 09/12/2018)} will not be accepted
-\item All submissions must be in PDF only. Scanned copies of handwritten solutions will not be accepted as a valid submission.
-\item Question 6 is a bonus question 
-\end{itemize}
-}}}
-\end{center}
-\vspace{0.2in}
 
 \begin{enumerate}
 	\item \textbf {Performance Optimization.}
@@ -52,15 +36,27 @@ Important Notes:
  \hline
   & LOAD & STORE & BRANCH & ADD & MULT \\ 
   \hline
- Frequency & 15\% & 15\% & 10\% & 20\% & 40\% \\ 
+ Frequency & 15\% & 15\% & 10\% & 20\% & 40\% \\ \hline
  Cycles & 1 & 1 & 2 &4 & 5 \\ 
 
 \hline
 \end{tabular}
 \end{center}
 	\begin{enumerate}
-    \item Compute the instructions per cycle (IPC) for the new and old processors. \textbf{(10 points)}
-        \item What is the speedup/slowdown gained through the proposed optimization?  \textbf{(5 points)}
+    \item Compute the instructions per cycle (IPC) for the new and old processors. \textbf{(10 points)} \\
+   
+   \textbf{Old processor:} First we will calculate the average cycles per instruction (CPI) and take the multiplicative inverse to find ICP.  
+   \begin{align*} 
+   			Average \ CPI &= \sum_{i = 1}^n I_{freq} * I_{cycles} \\
+   			  			&= 0.15 * 1 + 0.15 * 1 + 0.1 * 2 + 0.2 * 4 + 0.4 * 5 \\
+   			  			&= 3.3 \\ \\
+   			  			Average \ ICP &= \frac{1}{Average \ CPI} = \frac{1}{3.3} = \fbox{0.30303}
+   	\end{align*}
+   	
+   	\textbf{New processor:} Next we will add the FMAD instruction to the instruction set. We will replace asdf
+   	
+    \item What is the speedup/slowdown gained through the proposed optimization?  \textbf{(5 points)} \\
+   \fbox{\textbf{TODO}}
 
 	\end{enumerate}
     \item \textbf{Execution Time.} A computer system has three instruction classes as shown in the following table.
@@ -95,16 +91,21 @@ We execute two programs (P1 and P2) on this computer system. The following table
 \end{center}
 \begin{enumerate}
 \item What is the CPI and IPC of P1 and P2?
-\textbf{(10 points)}
-\item Suppose that the computer operates at 1GHz clock frequency; compute the execution times of P1 and P2?
- \textbf {(10 points)}
+\textbf{(10 points)} \\
+\fbox{\textbf{TODO}}
+\item Suppose that the computer operates at 1GHz clock frequency; compute the execution times of P1 and P2? 
+ \textbf {(10 points)} \\
+ \fbox{\textbf{TODO}}
 
 \end{enumerate}
     \item \textbf{Power and Energy.} A general purpose processor is operated at a 2GHz clock frequency with a 5V voltage supply. Suppose that the average load capacitance of all internal gates is 12pF. The static current driven from the supply is 5A and the logic gates exhibit an average activity of 0.8 switchings per cycle.
     \begin{enumerate}
-    \item Compute the static and dynamic power of the processor. \textbf{(10 points)}
-        \item If the voltage is scaled down by 50\% and the frequency is scaled up by 25\%, calculate the percentage increase/decrease in the total system power.   \textbf{(10 points)}
-        \item If the frequency is scaled down by 50\% of its initial value and the dynamic power along with the output current remains the same, calculate the percentage increase/decrease in the total system power.  \textbf{(10 points)}
+    \item Compute the static and dynamic power of the processor. \textbf{(10 points)} \\
+    \fbox{\textbf{TODO}}
+        \item If the voltage is scaled down by 50\% and the frequency is scaled up by 25\%, calculate the percentage increase/decrease in the total system power.   \textbf{(10 points)} \\
+     \fbox{\textbf{TODO}}
+        \item If the frequency is scaled down by 50\% of its initial value and the dynamic power along with the output current remains the same, calculate the percentage increase/decrease in the total system power.  \textbf{(10 points)} \\
+      \fbox{\textbf{TODO}}
         
 
 	\end{enumerate}
@@ -142,8 +143,11 @@ We execute two programs (P1 and P2) on this computer system. The following table
 \\ \verb|ADD R2, R5|
 \\ \verb|ADD R2, R3|
 
+\fbox{\textbf{TODO}}
 
-\item \textbf{Pipelining.} We design a simple microprocessor core that implements five operations similar to those of the basic MIPS architecture. The delays of these operations are 36ns, 39ns, 23ns, 28ns and 64ns. Consider designing both non-pipelined and pipelined versions of the microprocessor. (Inserting a pipeline register between operations adds 1ns to the critical path delay.) What is the maximum achievable speedup of the pipelined version over non-pipelined architecture when executing a large number of instructions (n$>>$5)? \textbf{(15 points)}
+
+\item \textbf{Pipelining.} We design a simple microprocessor core that implements five operations similar to those of the basic MIPS architecture. The delays of these operations are 36ns, 39ns, 23ns, 28ns and 64ns. Consider designing both non-pipelined and pipelined versions of the microprocessor. (Inserting a pipeline register between operations adds 1ns to the critical path delay.) What is the maximum achievable speedup of the pipelined version over non-pipelined architecture when executing a large number of instructions (n$>>$5)? \textbf{(15 points)} \\
+\fbox{\textbf{TODO}}
 
 \item \textbf{Bonus Question.} 
 Data transmission on a limited number of wires is crucial to power and performance of computer systems. Two popular communication techniques are called \textit{parallel} and \textit{serial} shown in Figure 1 (a) and (b).
@@ -180,21 +184,21 @@ Suppose that we have three applications A, B, and C transferring data on the mem
 \end{center}
 \begin{enumerate}
 \item Compute the total number of switchings on the wires for each application when using the serial, parallel, and the proposed techniques.
-\textbf{(5 points)}
+\textbf{(5 points)} \\
+\fbox{\textbf{TODO}}
 \item Suppose that the only parameter that changes during data transmission using these techniques is the number of bit flips (i.e., the wire capacitance and voltage supply are fixed). Compute the relative dynamic power of these techniques to serial communication.
-%consumed for transferring data with these three approaches. 
-\textbf {(5 points)}
-%\item Compare the amount of energy consumed for transferring data with these three approaches if we normalize the value to the serial encoding approach. Which one is the best? At least give one example of disadvantage of the method that give us the best energy number? \textbf{(10 points)}
+
+\textbf {(5 points)} \\
+\fbox{\textbf{TODO}}
+
 \item Compute the energy-delay-product of these techniques normalized to the serial communication.
-%sending data with these three approaches if we normalize the value to the serial encoding approach. Which one is the best? 
-\textbf{(5 points)}
+
+\textbf{(5 points)} \\
+\fbox{\textbf{TODO}}
 \item  Give three bytes data value which will lead to worst case execution time for the proposed method. 
-\textbf{(5 points)}
-%\item On-chip interconnects are a main contributor to the processor energy. Besides, Last Level Caches (LLCs) incur considerable delay and energy overheads through transferring data over wires. Typically, LLCs consume about 15\% of the total processor energy. Inside LLCs, interconnections are the major source of energy consumption (about 80\%).
-%      Suppose that we want to send data value of the three applications over the L2 interconnects. 
-% How much processor energy will be saved (or wasted) if we transfer data these three               approaches and normalize the value to the binary encoding approach. 
-%
-%\textbf{(7 points)}
+\textbf{(5 points)} \\
+\fbox{\textbf{TODO}}
+
 
 \end{enumerate}
 \end{enumerate}

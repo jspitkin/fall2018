@@ -1,0 +1,16 @@
+Pipeline Hazards
+  Data Hazards
+    producer/consumer relationship
+    read after write hazard (RAW)
+    write after read hazard (WAR)
+      write must wait for earlier read
+      prevents some instruction reordering
+    write after write hazard (WAW)
+      old writes must not overwrite the younger write
+
+Multicycle Instructions
+  not all of the ALU operations complete in one cycle
+  typically, FP (floating point) operations need more time
+  cycle time will always be the worst case of your critical path
+    a good reason to break up more complicated instructions
+  
