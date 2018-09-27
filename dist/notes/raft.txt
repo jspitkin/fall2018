@@ -1,0 +1,10 @@
+different levels of debugging output using flags
+add 'GOTRACEBACK=2 go test' to add traceback
+time.Millisecond
+use race checker and fix those first
+timer thread (multiple?)
+one thread needs to attack as leader (send out heartbeats)
+too many threads - too complicated 
+not enough threads - too much blocking to meet deadlines
+probably need a thread that solicits votes for the candidate phase
+

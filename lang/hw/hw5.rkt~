@@ -226,15 +226,3 @@
                     (bind 'x (numV 9))
                     (extend-env (bind 'y (numV 8)) mt-env)))
         (numV 8)))
-
-;; plus ---------------------------------------------------
-(define plus `{lambda ....})
-
-(module+ test
-  )
-
-;; times -------------------------------------------------
-(define times `{lambda ....})
-
-(module+ test
-  )
