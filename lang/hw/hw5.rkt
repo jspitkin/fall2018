@@ -168,7 +168,7 @@
                           {f 10}})
                  mt-env)
           (numV -10))
-
+  
   (test/exn (interp (parse `{1 2}) mt-env)
             "not a function")
   (test/exn (interp (parse `{+ 1 {lambda {x} x}}) mt-env)
@@ -228,13 +228,47 @@
         (numV 8)))
 
 ;; plus ---------------------------------------------------
-(define plus `{lambda ....})
+(define plus `{lambda {l} {lambda {r} {+ l r}}})
 
 (module+ test
-  )
+  (test (interp (parse (list->s-exp (list (list->s-exp (list plus `1)) `2)))
+                mt-env)
+        (interp (parse (list->s-exp (list `+ `1 `2))) mt-env))
+  (test (interp (parse (list->s-exp (list (list->s-exp (list plus `0)) `2)))
+                mt-env)
+        (interp (parse (list->s-exp (list `+ `0 `2))) mt-env))
+  (test (interp (parse (list->s-exp (list (list->s-exp (list plus `1)) `0)))
+                mt-env)
+        (interp (parse (list->s-exp (list `+ `1 `0))) mt-env))
+  (test (interp (parse (list->s-exp (list (list->s-exp (list plus `123)) `25)))
+                mt-env)
+        (interp (parse (list->s-exp (list `+ `123 `25))) mt-env)))
 
 ;; times -------------------------------------------------
-(define times `{lambda ....})
+(define times `{lambda {l}
+                 {lambda {r}
+                   {letrec {[mult {lambda {r}
+                                 {if0 r
+                                      0
+                                      {+ l {mult {+ r -1}}}}}]}
+                     {mult r}}}})
 
 (module+ test
-  )
+  (test (interp (parse (list->s-exp (list (list->s-exp (list times `2)) `3)))
+                mt-env)
+        (numV (* 2 3)))
+  (test (interp (parse (list->s-exp (list (list->s-exp (list times `0)) `3)))
+                mt-env)
+        (numV (* 0 3)))
+  (test (interp (parse (list->s-exp (list (list->s-exp (list times `2)) `0)))
+                mt-env)
+        (numV (* 2 0)))
+  (test (interp (parse (list->s-exp (list (list->s-exp (list times `20)) `7)))
+                mt-env)
+        (numV (* 20 7)))
+  (test (interp (parse (list->s-exp (list (list->s-exp (list times `1)) `7)))
+                mt-env)
+        (numV (* 1 7)))
+  (test (interp (parse (list->s-exp (list (list->s-exp (list times `20)) `1)))
+                mt-env)
+        (numV (* 20 1))))
