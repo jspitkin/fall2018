@@ -17,9 +17,9 @@
 \subtitle{CS/ECE 6810: Computer Architecture \\
 September 26,2018
 \\
-Name: Jake Pitkin
+Name:
 
-UID: u0891770 }
+UID: }
 
 \author{ \\
 \textbf{ILP and Branch Prediction}}
@@ -28,6 +28,8 @@ UID: u0891770 }
 
 \begin{document}
 \maketitle
+\begin{center}
+\fbox{\fbox{\parbox{5.9in}{\centering
 
 \begin{enumerate}
 	
@@ -116,7 +118,7 @@ Notice that \texttt{i} is an 8-byte long integer. Register names indicate if flo
 
 \begin{tabular}{lll}
 	\textbf{Source code} & & \textbf{Assembly code }\\
-	\texttt{for (i = 1000; i > 0; i--) \{}&  &\hspace{40pt}\texttt{ADDI R1, R0, \#1000} \\
+	\texttt{for (i = 125; i > 0; i--) \{}&  &\hspace{40pt}\texttt{ADDI R1, R0, \#1000} \\
 	\hspace{20pt}\texttt{x[i] = s * y[i] + z;} &  &\hspace{40pt}\texttt{JMP Chck}\\
 	\texttt{\}} &  &\texttt{Loop: Load F1, 0(R1)} \\
     &  &\hspace{35pt}\texttt{ MUL F3, F1, F2}\\
@@ -201,12 +203,13 @@ Example C and assembly codes are given for a user application.
 
 \begin{tabular}{lll}
 	\textbf{Source code} & & \textbf{Assembly code }\\
-	\texttt{n = 1000;}&  &\hspace{40pt}\texttt{ADDI R3, R0, \#1000} \\
+	\texttt{n = 250;}&  &\hspace{40pt}\texttt{ADDI R3, R0, \#1000} \\
 	\texttt{i = 0;} &  &\hspace{40pt}\texttt{ADDI R2, R0, \#0}\\
 	\texttt{do \{} &  &\texttt{Loop: Load  R1, 0(R2)} \\
 	\hspace{20pt}\texttt{x[i] = x[i] + 1;}&  &\hspace{40pt}\texttt{ADDI   R1, R1, \#1}\\
-	\hspace{20pt}\texttt{i = i+1;}&  &\hspace{40pt}\texttt{ADDI R2, R2, \#4}\\
-	\texttt{\} while(i < n);}&  &\hspace{40pt}\texttt{SUB R4, R3, R2}\\
+	\hspace{20pt}\texttt{i = i+1;}&  &\hspace{40pt}\texttt{Store  R1, 0(R2)}\\
+	\texttt{\} while(i < n);}&  &\hspace{40pt}\texttt{ADDI R2, R2, \#4}\\
+	&  &\hspace{40pt}\texttt{SUB R4, R3, R2}\\
 	&  &\hspace{40pt}\texttt{BNEQ R4, R0, Loop}\\
 \end{tabular}
 
