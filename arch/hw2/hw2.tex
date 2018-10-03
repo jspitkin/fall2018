@@ -17,9 +17,9 @@
 \subtitle{CS/ECE 6810: Computer Architecture \\
 September 26,2018
 \\
-Name:
+Name: Jake Pitkin
 
-UID: }
+UID: u0891770 }
 
 \author{ \\
 \textbf{ILP and Branch Prediction}}
@@ -29,7 +29,6 @@ UID: }
 \begin{document}
 \maketitle
 \begin{center}
-\fbox{\fbox{\parbox{5.9in}{\centering
 
 \begin{enumerate}
 	
@@ -80,32 +79,121 @@ Store F8, 50(R5)
 
 \end {center}
 
+\hfill
+ 
+\textbf{Answer:} Below is a table of all structural and data hazards present in the above list of instructions. \textit{Instruction 1} is the instruction that comes first temporally which is followed by \textit{Instruction 2}. \textit{Hazard Type} indicates what type of hazard is detected and \textit{Register} is the register causing the hazard.
+
+\begin{center}
+\begin{tabular}{ |c|c|c|c| } 
+ \hline
+  \textbf{Instruction 1} & \textbf{Instruction 2} & \textbf{Hazard Type} & \textbf{Register} \\ 
+  \hline
+ Load F2, 28(R5) & MUL F0, F2, F4 & RAW & F2\\ \hline
+ Load F6, 20(R5) & SUB F8, F6, F3 & & F6\\ \hline
+ MUL F0, F2, F4 & DIV F10, F0, F6 &  & F0 \\ \hline
+ Load F6, 20(R5) & DIV F10, F0, F6 &  & F6 \\ \hline
+ SUB F8, F6, F3 & ADD F6, F8, F2 & & F8\\ \hline
+ Load F2, 28(R5) & ADD F6, F8, F2 & & F2\\ \hline
+\end{tabular}
+\end{center}
+
+\hfill
+
+\pagebreak
 \item Create a timing diagram for the code showing the execution of the code in time (clock cycles). \textbf{(20 points)}
+
+\begin{center}
+\begin{tabular}{ |c|c|c|c|c|c|c| } 
+ \hline
+  \textbf{Instruction} & \textbf{Cycle 1} & \textbf{Cycle 2} & \textbf{Cycle 3} & \textbf{Cycle 4} & \textbf{Cycle 5} & 
+  \textbf{Cycle 6 \ \ \ \ \ \ \ \ \ \ } \\ 
+  \hline
+ Load F6, 20(R5) & IF & ID & RR & EX Data & EX Data & WB\\ \hline
+ Load F2, 28(R5) & - & IF & ID & RR & STALL & EX Data\\ \hline
+ MUL F0, F2, F4 & - & - & IF & ID & RR & STALL\\ \hline
+ SUB F8, F6, F3 & - & - & - & IF & ID & RR\\ \hline
+ DIV F10, F0, F6 & - & - & - & - & IF & ID\\ \hline
+ ADD F6, F8, F2 & - & - & - & - & - & IF\\ \hline
+ Store F8, 50(R5) & - & - & - & - & - & -\\ \hline
+\end{tabular}
+
+\begin{tabular}{ |c|c|c|c|c|c|c| } 
+ \hline
+  \textbf{Instruction} & \textbf{Cycle 07} & \textbf{Cycle 08} & \textbf{Cycle 09} & \textbf{Cycle 10} & \textbf{Cycle 11} & 
+  \textbf{Cycle 12} \\ 
+  \hline
+ Load F6, 20(R5) &  &  &  &  &  & \\ \hline
+ Load F2, 28(R5) & EX Data & WB &  &  &  & \\ \hline
+ MUL F0, F2, F4 & STALL & EX MULT & EX MULT & EX MULT & WB &\\ \hline
+ SUB F8, F6, F3 & EX SUB & STALL & STALL & STALL & STALL & WB\\ \hline
+ DIV F10, F0, F6 & RR & STALL & STALL & STALL & EX DIV & EX DIV\\ \hline
+ ADD F6, F8, F2 & ID & RR & EX ADD & STALL & STALL & STALL\\ \hline
+ Store F8, 50(R5) & IF & ID & RR & EX Data & STALL & STALL\\ \hline
+\end{tabular}
+
+\begin{tabular}{ |c|c|c|c|c|c|c| } 
+ \hline
+  \textbf{Instruction} & \textbf{Cycle 13} & \textbf{Cycle 14} & \textbf{Cycle 15} & \textbf{Cycle 16} & \textbf{Cycle 17} & 
+  \textbf{Cycle 18 \ \ } \\ 
+  \hline
+ Load F6, 20(R5) &  &  &  &  &  & \\ \hline
+ Load F2, 28(R5) &  &  &  &  &  & \\ \hline
+ MUL F0, F2, F4 &  &  &  &  &  & \\ \hline
+ SUB F8, F6, F3 &  &  &  &  & & \\ \hline
+ DIV F10, F0, F6 & EX DIV & EX DIV & EX DIV & EX DIV & EX DIV & WB\\ \hline
+ ADD F6, F8, F2 & STALL & STALL & STALL & STALL & STALL & STALL\\ \hline
+ Store F8, 50(R5) & STALL & STALL & STALL & STALL & STALL & STALL\\ \hline
+\end{tabular}
+
+\begin{tabular}{ |c|c|c|c|c|c|c| } 
+ \hline
+  \textbf{Instruction} & \textbf{Cycle 19} & \textbf{Cycle 20} & \textbf{Cycle 21} & \textbf{Cycle 22} & \textbf{Cycle 23} & 
+  \textbf{Cycle 24 \ \ } \\ 
+  \hline
+ Load F6, 20(R5) &  &  &  &  &  & \\ \hline
+ Load F2, 28(R5) &  &  &  &  &  & \\ \hline
+ MUL F0, F2, F4 &  &  &  &  &  & \\ \hline
+ SUB F8, F6, F3 &  &  &  &  &  & \\ \hline
+ DIV F10, F0, F6 &  &  &  &  &  & \\ \hline
+ ADD F6, F8, F2 & WB &  &  &  &  & \\ \hline
+ Store F8, 50(R5) & STALL & WB &  &  &  & \\ \hline
+\end{tabular}
+\end{center}
 
 
 \end{enumerate}
-Note:  Assumptions to solve the question:
+\textbf{My Notes for the above timelne:}
 %
 \begin{itemize}
-	\item To avoid imprecise exception, keep the WB in order.
-	%\item  EX has data forwarding just for ALU operations not for load ad store operations.
-	%\item Memory access for load and store happens in the EX unit.
-	\item  Register file has 2 read and one write ports; a write and up to two read can happen at the same time for different locations but NOT for the same location.
-	%\item The processor does not have the capability that read and write (from) to memory and register file happen at the same clock cycle.
+	\item Stalls are used to maintain the WB order of the instructions even if there is no hazard.
+	\item Instruction MUL F0, F2, F4 will have its register read of F2 overwritten in cycle 8 by a forward from the EX/WB pipeline. 
+	\item Instruction ADD F6, F8, F2 will have it's register read of F8 overwritten in cycle 9 by a forward from the EX/WB pipeline.
+	\item Instruction Store F8, 50(R5) will have its register read of F8 overwritten in cycle 10 by a forward from the EX/WB pipeline.
+	\item Instruction DIV F10, F0, F6 will have its register read of F0 overwritten in cycle 11 by a forward from the EX/WB pipeline.
+
 \end{itemize}
 
-
+\pagebreak
 
 \item \textbf{Points of Production and Consumption.}
 Consider an unpipelined processor where it takes 36 ns to go through the circuits and 0.5 ns for the latch overhead. Assume that the point of production and point of consumption in the unpipelined processor are separated by 12ns. Assume that half the instructions do not introduce a data hazard and half the instructions depend on their preceding instruction.
 
 \begin{enumerate}
-\item What is the maximum throughput of the unpipelined architecture in instructions per second (IPS). \textbf{(10 points)}
+\item What is the maximum throughput of the unpipelined architecture in instructions per second (IPS). \textbf{(10 points)} \\
 
+\hfill
+ 
+\textbf{Answer:} 
+
+\hfill
 
 \item We build a 12-stage pipelined architecture for the processor. Please compute the percentages of increase/decrease in throughput for the pipelined architecture compared to unpipelined process.\textbf {(10 points)}
 
+\hfill
+ 
+\textbf{Answer:} 
 
+\hfill
 
 \end{enumerate}
 %\end{enumerate}
@@ -140,7 +228,19 @@ Assume the following delays between dependent (producer-consumer) instructions:\
 \begin{enumerate}
 	\item First show all of the stall cycles necessary in the original assembly code. Then, find an optimized schedule for this loop through reordering instructions but \underline{without} resorting to loop \underline{unrolling.} \textbf{(10 points)}
 	
+	\hfill
+ 
+\textbf{Answer:} 
+
+\hfill
+	
 	\item Optimize the schedule by loop unrolling 1x, 2x, and 3x. Notice that a 1x unroll includes the original loop body plus the 1 time unrolled instructions. \textbf{(10 points)}
+	
+	\hfill
+ 
+\textbf{Answer:} 
+
+\hfill
 
 
 \end{enumerate}
@@ -216,8 +316,29 @@ Example C and assembly codes are given for a user application.
 %There is no forwarding. Show the phases of each instruction per clock cycle for one iteration of the loop.
 \begin{enumerate}
 	\item  Without any branch prediction, how many stall cycles are necessary due to the branch instructions in the original code? \textbf {(10 points)}
+	
+\hfill
+ 
+\textbf{Answer:} 
+
+\hfill
+
     \item  Assume a static branch predictor capable of predicting always-taken or always-not-taken. Compute the percentages of improvements in IPC compared to the previous case with no branch predictor? \textbf {(10 points)}
+    
+    \hfill
+ 
+\textbf{Answer:} 
+
+\hfill
+
    \item Assume a single 3-bit saturating counter for dynamic branch prediction. The initial state of the counter is 000. States 000--011 predict not taken; while, 100--111 indicate taken. Compute the total number of mis-predictions. Compute the percentages of improvements in IPC compared to the case with no branch predictor? \textbf {(10 points)}
+   
+   \hfill
+ 
+\textbf{Answer:} 
+
+\hfill
+
 \end{enumerate}
 Note: Assume an instruction does not enter the execution phase until all of its operands are ready.
 
