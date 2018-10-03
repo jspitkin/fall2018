@@ -31,9 +31,35 @@ UID: u0891770 }
 \begin{center}
 
 \begin{enumerate}
-	
+
+\item \textbf{Multi-cycle Instructions.}
+A pipelined architecture comprises instruction fetch (IF), instruction decode (ID), register read (RR), execute (EX), and write-back (WB) stages.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{q1}
+	\caption{Pipelined core architecture.}
+	\label{fig:q1}
+\end{figure}
+
+Except EX, each stage requires one clock cycle to complete.
+The EX stage includes 4 functional units that perform memory and ALU operations---e.g., ADD, SUB, MULT, DIV, load, and store.
+The table below shows the latency of each operation in terms of clock cycles.
+The architecture implements forwarding paths from the EX/WB pipeline registers to the EX input.
+Moreover, the register file may be bypassed during the WB stage to send the register value to EX.
+
+\begin{center}
+\begin{tabular}{ |c|c|c|c|c|c|c| } 
+ \hline
+  & ADD & SUB & MULT & DIV & Load & Store \\ 
+  \hline
+ Latency & 1 & 1 & 3 & 7 & 2 & 1 \\ 
+ \hline
+\end{tabular}
+\end{center}
 
 \begin{enumerate}
+
+
 
 \item Identify all structural and data hazards in the following code. \textbf {(10 points)}
 
@@ -56,14 +82,13 @@ Store F8, 50(R5)
 
 \end {center}
  
-Below is a table of all structural and data hazards present in the above list of instructions. \textit{Instruction 1} is the instruction that comes first temporally which is followed by \textit{Instruction 2}. \textit{Hazard Type} indicates what type of hazard is detected and \textit{Resource/Register} is the register or resource causing the hazard.
+Below is a table of all data hazards present in the above list of instructions. \textit{Instruction 1} is the instruction that comes first temporally which is followed by \textit{Instruction 2}. \textit{Hazard Type} indicates what type of hazard is detected and \textit{Register} is the register causing the hazard.
 
 \begin{center}
 \begin{tabular}{ |c|c|c|c| } 
  \hline
-  \textbf{Instruction 1} & \textbf{Instruction 2} & \textbf{Hazard Type} & \textbf{Resource/Register} \\ 
+  \textbf{Instruction 1} & \textbf{Instruction 2} & \textbf{Hazard Type} & \textbf{Register} \\ 
   \hline
- Load F2, 28(R5) & Load F6, 20(R5) & Structural & EX - Data Mem\\ \hline
  Load F2, 28(R5) & MUL F0, F2, F4 & RAW & F2\\ \hline
  Load F6, 20(R5) & SUB F8, F6, F3 & RAW & F6\\ \hline
  MUL F0, F2, F4 & DIV F10, F0, F6 & RAW & F0 \\ \hline
@@ -77,9 +102,12 @@ Below is a table of all structural and data hazards present in the above list of
 \end{tabular}
 \end{center}
 
+\textit{My notes for the above data hazards:} I listed all hazards including the hazards that didn't end up being an issue in part ii.
+
+\textit{Structural hazards:} The two successive load instructions will cause a structural hazard on the EX Data Mem as Load takes two cycles the second load will have to wait for the EX Data Mem resource.
+
 \hfill
 
-\pagebreak
 \item Create a timing diagram for the code showing the execution of the code in time (clock cycles). \textbf{(20 points)}
 
 \begin{center}
@@ -142,17 +170,17 @@ Below is a table of all structural and data hazards present in the above list of
 
 
 \end{enumerate}
-\textbf{My Notes for the above timelne:}
+
+\textit{My Notes for the above timelne:}
 %
 \begin{itemize}
+	\item Pipeline registers contain a FIFO queue allowing them to contain a queue of multiple waiting values.
 	\item Stalls are used to maintain the WB order of the instructions even if there is no hazard.
 	\item Instruction MUL F0, F2, F4 will have its register read of F2 overwritten in cycle 8 by a forward from the EX/WB pipeline. 
 	\item Instruction ADD F6, F8, F2 will have it's register read of F8 overwritten in cycle 9 by a forward from the EX/WB pipeline.
 	\item Instruction Store F8, 50(R5) will have its register read of F8 overwritten in cycle 10 by a forward from the EX/WB pipeline.
 	\item Instruction DIV F10, F0, F6 will have its register read of F0 overwritten in cycle 11 by a forward from the EX/WB pipeline.
 \end{itemize}
-
-\pagebreak
 
 \item \textbf{Points of Production and Consumption.}
 Consider an unpipelined processor where it takes 36 ns to go through the circuits and 0.5 ns for the latch overhead. Assume that the point of production and point of consumption in the unpipelined processor are separated by 12ns. Assume that half the instructions do not introduce a data hazard and half the instructions depend on their preceding instruction.
@@ -162,18 +190,40 @@ Consider an unpipelined processor where it takes 36 ns to go through the circuit
 
 \hfill
  
-\textbf{Answer:} 
+The IPS of an unpipelined architecture is given by IPS = IPC * 1/CT. The architecture is unpipelined so IPC = 1 and the CT is given by 36 ns + 0.5 ns.
 
-\hfill
+\begin{align*} 
+	IPS &= IPC * \frac{1}{CT} \\
+	IPS &= 1 * \frac{1}{36.5 * 10^{-9}}\\
+	IPS &= 2.7397 * 10^7
+\end{align*}
 
 \item We build a 12-stage pipelined architecture for the processor. Please compute the percentages of increase/decrease in throughput for the pipelined architecture compared to unpipelined process.\textbf {(10 points)}
 
 \hfill
  
-\textbf{Answer:} 
+To compute the change in throughput we must first compute the new IPS. To calculate this we need the new IPC and the new CT. 
 
-\hfill
+We know the circuits take 36ns so with a 12-stage pipelined architecture each stage will take 3ns without the latch. This means the point of production and point of consumption is separated by 12ns/3ns or 4 pipeline stages.
 
+If this hazard occurs half the time, we know that half our instructions will take one cycle while the other half take four. This means we will finish two instructions per five cycles so IPC = 2/5 = 0.4.
+
+CT will simply be the length of a stage plus the latch time so CT = 3.5 ns.
+
+\begin{align*} 
+	IPS_{new} &= IPC_{new} * \frac{1}{CT_{new}} \\
+	IPS_{new} &= 0.4 * \frac{1}{3.5 * 10^{-9}}\\
+	IPS_{new} &= 1.1429 * 10^8
+\end{align*}
+
+Using this we can compute the increase in throughput:
+
+\begin{align*} 
+	Throughput \ Increase &= IPC_{new} / IPC\\
+	Throughput \ Increase &= (1.1429 * 10^8) / (2.7397 * 10^7)\\
+	Throughput \ Increase &= 4.1716\\
+	Throughput \ Increase &= 417.16\%\\
+\end{align*}
 \end{enumerate}
 %\end{enumerate}
 
@@ -223,57 +273,6 @@ Assume the following delays between dependent (producer-consumer) instructions:\
 
 
 \end{enumerate}
-%Note: Assume that if all existing separate pipes at the same time are idle then there would be a stall.
-%\end{enumerate}
-
-
-
-%\item \textbf{Impact of Microarchitectural Techniques.}
-%Consider a multiple-issue archiecture with the latency mentioned in the following table. Suppose you have two execution pipelines, each capable of beginning execution of one instruction per cycle, and enough fetch/decode bandwidth in the front end so that it will not stall your execution. In addition, assume results can be immediately forwarded from one execution unit to another, or to itself. Further, assume that the only reason an execution pipeline would stall is due to true data dependency. 
-%\begin{center}
-%	\begin{tabular}{ |c|c|c|c|c|c|c|c| } 
-%		\hline
-%		& MemLD & MemSD & Integer ADD,SUB & Branch & ADDD & MultD & DIVD \\ 
-%		\hline
-%		Latency & 3 & 1 & 0 & 1& 2 & 4 & 10 \\ 
-%		\hline
-%	\end{tabular}
-%\end{center}
-%
-%\begin {center}
-%\hspace{-20pt} Loop: LD  F2, 0(Rx) 
-%
-%\hspace{25pt} MULTD F2, F0, F2
-%
-%\hspace{15pt} DIVD  F8, F2, F0
-%
-%\hspace{0pt} LD F4, 0(RY)
-%
-%\hspace{20pt} ADDD F4, F0, F4
-%
-%\hspace{24pt} ADDD F10, F8, F2
-%
-%\hspace{1pt} SD  F4, 0(RY)
-%
-%\hspace{20pt} ADDI Rx, Rx, \#8
-%
-%\hspace{20pt} ADDI Ry, Ry, \#8
-%
-%\hspace{20pt} SUB  R20, R4, Rx
-%
-%\hspace{10pt} BNZ  R20, Loop
-%
-%\end {center}
-%
-%\begin{enumerate}
-%	\item How many cycles per loop does the above code require to execute? \textbf{(15 points)}
-%	
-%	\item In the above multiple-issue design, you may have recognized some subtle issues.For example, if instruction N  begins execution in Execution Pipe 0 at the same time that instruction N+1 begins in Pipe 1, and N + 1 requires a shorter execution latency than N, then N + 1 will complete before N (even though program ordering would have implied otherwise). Mention at least two reasons why that could be hazardous and will require special considerations in the microarchitecture. Give an example of two instructions from the code that demonstrate this hazard? \textbf {(15 points)}
-%	
-%	
-%	
-%\end{enumerate}
-
 
 \item \textbf{Branch Prediction.}
 Assume a 32-bit five-stage scalar pipeline with the fetch, decode, execute, memory, and write back stages.
