@@ -28,7 +28,6 @@ UID: u0891770 }
 
 \begin{document}
 \maketitle
-\begin{center}
 
 \begin{enumerate}
 
@@ -259,7 +258,60 @@ Assume the following delays between dependent (producer-consumer) instructions:\
 	
 	\hfill
  
-\textbf{Answer:} 
+\begin{tabular}{ll}
+	& \textbf{Assembly code }\\
+	&\hspace{40pt}\texttt{ADDI R1, R0, \#1000} \\
+	&\hspace{40pt}\texttt{JMP Chck}\\
+	&\texttt{Loop: Load F1, 0(R1)} \\
+	&\hspace{40pt}\texttt{stall}\\
+    &\hspace{35pt}\texttt{ MUL F3, F1, F2}\\
+    &\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ ADD F5, F3, F4}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ Store F5, 20000(R1)}\\
+	&\hspace{35pt}\texttt{ ADDI R1, R1, \#-8}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\texttt{Chck: BNEQ R1, R0, Loop}\\
+	&\hspace{40pt}\texttt{stall}\\
+\end{tabular}
+
+\hfill
+
+\textit{Explanation of inserted stalls:}
+\begin{itemize}
+	\item Stall 1: Load F1, 0(R1) feeds MUL F3, F1, F2 the register F1.
+	\item Stall 2: MUL F3, F1, F2 feeds ADD F5, F3, F4 the register F3. (from Canvas)
+	\item Stall 3-6: ADD F5, F3, F4 feeds Store F5, 20000(R1) the register F5.
+	\item Stall 7: ADDI R1, R1, \#-8 feeds BNEQ R1, R0, Loop the register R1.
+	\item Stall 8: BNEQ R1, R0, Loop is a conditional branch.
+\end{itemize}
+
+\hfill
+
+\begin{tabular}{ll}
+	& \textbf{Optimized Assembly code }\\
+	&\hspace{40pt}\texttt{ADDI R1, R0, \#1000} \\
+	&\hspace{40pt}\texttt{JMP Chck}\\
+	&\texttt{Loop: Load F1, 0(R1)} \\
+	&\hspace{35pt}\texttt{ ADDI R1, R1, \#-8}\\
+    &\hspace{35pt}\texttt{ MUL F3, F1, F2}\\
+    &\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ ADD F5, F3, F4}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ Store F5, 20008(R1)}\\
+	&\texttt{Chck: BNEQ R1, R0, Loop}\\
+	&\hspace{40pt}\texttt{stall}\\
+\end{tabular}
+
+\hfill
+
+\textit{Explanation of loop optimization:} The instruction ADDI R1, R1, \#-8 was moved up to be the second instruction in the loop. To keep the Store F5, 20000(R1) instruction correct, 8 is added to the offset to make up for subtracting 8 from R1 before executing the Store. This allowed for removal of two of the stall operations from the loop body.
 
 \hfill
 	
@@ -267,10 +319,130 @@ Assume the following delays between dependent (producer-consumer) instructions:\
 	
 	\hfill
  
-\textbf{Answer:} 
+\textit{Loop unrolling 1x without reordering:}
 
 \hfill
 
+\begin{tabular}{ll}
+	& \textbf{Assembly code }\\
+	&\hspace{40pt}\texttt{ADDI R1, R0, \#1000} \\
+	&\hspace{40pt}\texttt{JMP Chck}\\
+	&\texttt{Loop: Load F1, 0(R1)} \\
+	&\hspace{40pt}\texttt{stall}\\
+    &\hspace{35pt}\texttt{ MUL F3, F1, F2}\\
+    &\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ ADD F5, F3, F4}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ Store F5, 20000(R1)}\\
+	&\hspace{40pt}\texttt{Load F6, -8(R1)} \\
+	&\hspace{40pt}\texttt{stall}\\
+    &\hspace{35pt}\texttt{ MUL F7, F6, F2}\\
+    &\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ ADD F8, F7, F4}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ Store F8, 19992(R1)}\\
+	&\hspace{35pt}\texttt{ ADDI R1, R1, \#-16}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\texttt{Chck: BNEQ R1, R0, Loop}\\
+	&\hspace{40pt}\texttt{stall}\\
+\end{tabular}
+
+\hfill
+
+\textit{Loop unrolling 1x reordered:}
+
+\hfill
+
+\begin{tabular}{ll}
+	& \textbf{Assembly code }\\
+	&\hspace{40pt}\texttt{ADDI R1, R0, \#1000} \\
+	&\hspace{40pt}\texttt{JMP Chck}\\
+	&\texttt{Loop: Load F1, 0(R1)} \\
+	&\hspace{40pt}\texttt{Load F6, -8(R1)} \\
+    &\hspace{35pt}\texttt{ MUL F3, F1, F2}\\
+    &\hspace{35pt}\texttt{ MUL F7, F6, F2}\\
+	&\hspace{35pt}\texttt{ ADD F5, F3, F4}\\
+	&\hspace{35pt}\texttt{ ADD F8, F7, F4}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ ADDI R1, R1, \#-16}\\
+	&\hspace{35pt}\texttt{ Store F5, 20016(R1)}\\
+	&\hspace{35pt}\texttt{ Store F8, 20008(R1)}\\
+	&\texttt{Chck: BNEQ R1, R0, Loop}\\
+	&\hspace{40pt}\texttt{stall}\\
+\end{tabular}
+
+\hfill
+
+\textit{Explanation of loop optimization:} Similar to part i, the ADDI instruction is moved up and the Store instruction offset is adjusted to take in account the ADDI instruction is now being executed prior to the Store. We can interweave the unrolled Load, MUL, and ADD operations to remove additional stalls. An identical approach will be used for x2 and x3 unrolling so I will skip the versions without reordering.
+
+\hfill
+
+\textit{Loop unrolling 2x reordered:}
+
+\hfill
+
+\begin{tabular}{ll}
+	& \textbf{Assembly code }\\
+	&\hspace{40pt}\texttt{ADDI R1, R0, \#1000} \\
+	&\hspace{40pt}\texttt{JMP Chck}\\
+	&\texttt{Loop: Load F1, 0(R1)} \\
+	&\hspace{40pt}\texttt{Load F6, -8(R1)} \\
+	&\hspace{40pt}\texttt{Load F9, -16(R1)} \\
+    &\hspace{35pt}\texttt{ MUL F3, F1, F2}\\
+    &\hspace{35pt}\texttt{ MUL F7, F6, F2}\\
+    &\hspace{35pt}\texttt{ MUL F10, F9, F2}\\
+	&\hspace{35pt}\texttt{ ADD F5, F3, F4}\\
+	&\hspace{35pt}\texttt{ ADD F8, F7, F4}\\
+	&\hspace{35pt}\texttt{ ADD F11, F10, F4}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{35pt}\texttt{ ADDI R1, R1, \#-24}\\
+	&\hspace{35pt}\texttt{ Store F5, 20024(R1)}\\
+	&\hspace{35pt}\texttt{ Store F8, 20016(R1)}\\
+	&\hspace{35pt}\texttt{ Store F11, 20008(R1)}\\
+	&\texttt{Chck: BNEQ R1, R0, Loop}\\
+	&\hspace{40pt}\texttt{stall}\\
+\end{tabular}
+
+\hfill
+\pagebreak
+
+\textit{Loop unrolling 3x reordered:}
+
+\hfill
+
+\begin{tabular}{ll}
+	& \textbf{Assembly code }\\
+	&\hspace{40pt}\texttt{ADDI R1, R0, \#1000} \\
+	&\hspace{40pt}\texttt{JMP Chck}\\
+	&\texttt{Loop: Load F1, 0(R1)} \\
+	&\hspace{40pt}\texttt{Load F6, -8(R1)} \\
+	&\hspace{40pt}\texttt{Load F9, -16(R1)} \\
+	&\hspace{40pt}\texttt{Load F12, -24(R1)} \\
+    &\hspace{35pt}\texttt{ MUL F3, F1, F2}\\
+    &\hspace{35pt}\texttt{ MUL F7, F6, F2}\\
+    &\hspace{35pt}\texttt{ MUL F10, F9, F2}\\
+     &\hspace{35pt}\texttt{ MUL F13, F12, F2}\\
+	&\hspace{35pt}\texttt{ ADD F5, F3, F4}\\
+	&\hspace{35pt}\texttt{ ADD F8, F7, F4}\\
+	&\hspace{35pt}\texttt{ ADD F11, F10, F4}\\
+	&\hspace{35pt}\texttt{ ADD F14, F13, F4}\\
+	&\hspace{35pt}\texttt{ ADDI R1, R1, \#-32}\\
+	&\hspace{35pt}\texttt{ Store F5, 20032(R1)}\\
+	&\hspace{35pt}\texttt{ Store F8, 20024(R1)}\\
+	&\hspace{35pt}\texttt{ Store F11, 20016(R1)}\\
+	&\hspace{35pt}\texttt{ Store F14, 20008(R1)}\\
+	&\texttt{Chck: BNEQ R1, R0, Loop}\\
+	&\hspace{40pt}\texttt{stall}\\
+\end{tabular}
+
+With 3x unrolling we've optimized the code to have less overhead and removed all stall cycles.
 
 \end{enumerate}
 
@@ -319,37 +491,6 @@ Example C and assembly codes are given for a user application.
 
 \end{enumerate}
 Note: Assume an instruction does not enter the execution phase until all of its operands are ready.
-
-
-
-\item \textbf{Bonus Question.}
-Consider running the following code on a pipelined machine. Every pipeline stage requires one cycle. Every branch instruction needs three cycles to produce an outcome. Assume that only branches may introduce stall cycles to the pipeline.
-We want to design a global branch predictor with 32 2-bit counters (n=2), where 5 bits from the PC are XORed with a 5-bit GHR (b=r=5) to produce an index to the shared counters.
-\begin{enumerate}
-	\item  Without any branch prediction, compute the IPC of the code? \textbf {(5 points)}
-	\item  Assume all the shared counters and the GHR are initialized to 0, compute the IPC and misprediction rate of the global branch predictor? \textbf{(15 points)}
-\end{enumerate}
-Note: after executing a branch, GHR shifts 1 bit to the left. The least significant bit of GHR is set to the branch outcome (0: not-taken and 1: taken).
-
-\begin{figure}[!h]
-	\centering
-	\includegraphics[width=0.5\linewidth]{q5}
-	\caption{Global branch predictor.}
-	\label{fig:q5}
-\end{figure}
-
-
-\begin{tabular}{lcl}
-\textbf{PC} & : & \textbf{Instruction}\\
-\hline
-\texttt{0000} & : & \hspace{40pt}\texttt{ADDI R1, R0, \#1}\\
-\texttt{0004} & : & \hspace{40pt}\texttt{ADDI R2, R0, \#9}\\
-\texttt{0008} & : & \texttt{Loop: ADDI R2, R2, \#-1}\\
-\texttt{0012} & : & \hspace{40pt}\texttt{ANDI R3, R2, \#3}\\
-\texttt{0016} & : & \hspace{40pt}\texttt{BNEQ R3, R1, Next}\\
-\texttt{0020} & : & \hspace{40pt}\texttt{ADD R4, R4, R3}\\
-\texttt{0024} & : & \texttt{Next: BNEQ R2, R0, Loop}
-\end{tabular}
 
 \end{enumerate}
 
