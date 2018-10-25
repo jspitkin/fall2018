@@ -54,8 +54,6 @@
            [env : Env]
            [k : Cont])
   (doAppK [f : Value]
-          [k : Cont])
-  (doNegK [a : Value]
           [k : Cont]))
 
 (module+ test
@@ -144,7 +142,9 @@
              (extend-env (bind n (contV k))
                          env)
              k)]
-    [(negE e) (continue k (num* (interp e env k) -1))]
+    [(negE e) (type-case Value (interp e env k)
+                [(numV n) (continue k (numV (* -1 n)))]
+                [else (error 'interp "not a number")])]
     [(avgE x y z) ....]
     [(if0E tst thn els) ....]))
 
@@ -173,9 +173,7 @@
                  c-env)
                 next-k)]
        [(contV k-v) (continue k-v v)]
-       [else (error 'interp "not a function")])]
-    [(doNegK v-l next-k)
-     (continue next-k (num* v-l (numV -1)))]))
+       [else (error 'interp "not a function")])]))
 
 (module+ test
   (test (interp (parse `2) mt-env (doneK))

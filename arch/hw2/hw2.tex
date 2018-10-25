@@ -469,28 +469,73 @@ Example C and assembly codes are given for a user application.
 	
 \hfill
  
-\textbf{Answer:} 
+\begin{tabular}{lll}
+	& \textbf{Assembly code }\\
+	&\hspace{40pt}\texttt{ADDI R3, R0, \#1000} \\
+	&\hspace{40pt}\texttt{ADDI R2, R0, \#0}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\texttt{Loop: Load  R1, 0(R2)} \\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{ADDI   R1, R1, \#1}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{Store  R1, 0(R2)}\\
+	&\hspace{40pt}\texttt{ADDI R2, R2, \#4}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{SUB R4, R3, R2}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{BNEQ R4, R0, Loop}\\
+	&\hspace{40pt}\texttt{stall}\\
+	&\hspace{40pt}\texttt{stall}\\
+\end{tabular}
+
 
 \hfill
 
+As per the statement by the professor on the Canvas discussion board: "A branch needs n cycles to produce outcome means in the absence of a branch predictor, n stall cycles are necessary after a branch instruction.". The problem description states it takes branch instructions two clock cycles to determine the outcome, so we require two stalls.
+
+Additionally, we will require three stalls between Load R1, 0(R2) and ADDI R1, R1, \#1 so the register R1 can be loaded. As well as a single stall after the instruction ADDI R2, R0, \#0, the instruction ADDI R1, R1, \#1, the instruction ADDI R2, R2, \#4, and the instruction SUB R4, R3, R2 as the following instructions use their result and the problem statement states that ADDI and SUB require 1 cycle.
+
+\textbf{The question only asks for the stall cycles due to the branch instruction which is two.}
+
     \item  Assume a static branch predictor capable of predicting always-taken or always-not-taken. Compute the percentages of improvements in IPC compared to the previous case with no branch predictor? \textbf {(10 points)}
     
-    \hfill
+ \hfill
  
-\textbf{Answer:} 
+We can calculate speedup by considering the formula from the Branch Prediction lecture slides:
+
+$$Speedup = \frac{1 + bc}{1 + (1 -a)bc}$$
+
+Where a is the prediction accuracy, b is the frequency of branches , and c is the misprediction cost.
+
+First we can consider the prediction accuracy of a static branch predictor that predicts always-taken. The BNEQ R4, R0, Loop instruction will be checked 250 times. The predictor will be correct 249 times and incorrect 1 time. So a = 249/250 = 0.996.
+
+Next we consider the frequency of branches. As written above with the stalls, there are three instructions as well as the Loop body containing 12 instructions (not including the two stalls after the BNEQ instruction that are no longer needed). Out of the 12 * 250 + 3 instructions 250 of them will be branch instructions. So b = 250 / 3,003 = 0.08325.
+
+Finally c is the misprediction cost which is two stalls so c = 2.
+
+$$Speedup = \frac{1 + (0.08325 * 2)}{1 + (1 - 0.996)(0.008325 * 2)}$$
+$$Speedup = 1.16642$$
+$$Percent \ Performance \ Gain = ~16.64\%$$
 
 \hfill
 
    \item Assume a single 3-bit saturating counter for dynamic branch prediction. The initial state of the counter is 000. States 000--011 predict not taken; while, 100--111 indicate taken. Compute the total number of mis-predictions. Compute the percentages of improvements in IPC compared to the case with no branch predictor? \textbf {(10 points)}
    
-   \hfill
- 
-\textbf{Answer:} 
-
 \hfill
 
+Here again we will consider the speedup formula as in part ii. The frequency of branches, b, will stay the same at b = 0.08325. As well as the cost of a misprediction, c, which is c = 2. With the new dynamic branch predictions the prediction accuracy, a, will change.
+
+First we will compute the mispredictions. Starting in state 000 we will mispredict the first iteration of the loop. Moving to state 001 we will mispredict again on the second iteration. Moving to state 010 we will mispredict on the third iteration. Moving to state 0110 we will mispredict yet again on the four iteration. Finally on iteration 250 we will be in state 111 and mispredict. \textbf{That is a total of 5 mispredictions}. This gives a prediction accuracy a = 245/250. We can use this to calculate the speedup over no branch predictor:
+
+$$Speedup = \frac{1 + (0.08325 * 2)}{1 + (1 - 0.98)(0.008325 * 2)}$$
+$$Speedup = 1.16611$$
+$$Percent \ Performance \ Gain = ~16.61\%$$
+
+
 \end{enumerate}
-Note: Assume an instruction does not enter the execution phase until all of its operands are ready.
+
 
 \end{enumerate}
 
