@@ -16,7 +16,7 @@
          [r : Exp])
   (lamE [ns : (Listof Symbol)]
         [body : Exp])
-  (appE [fun : Exp]
+  (appE [f : Exp]
         [args : (Listof Exp)])
   (let/ccE [n : Symbol]
            [body : Exp])
@@ -50,12 +50,31 @@
                [k : Cont])
   (doMultK [v : Value]
            [k : Cont])
-  (appArgK [a : Exp]
+  (appArgK [args : (Listof Exp)]
            [env : Env]
            [k : Cont])
+  (appArgRecK [f : Value]
+              [args : (Listof Exp)]
+              [vals : (Listof Value)]
+              [env : Env]
+              [k : Cont])
   (doAppK [f : Value]
           [k : Cont])
-  (doNegK [a : Value]
+  (doNegK [k : Cont])
+  (avgSecondK [y : Exp]
+              [z : Exp]
+              [e : Env]
+              [k : Cont])
+  (avgThirdK [x : Value]
+             [z : Exp]
+             [e : Env]
+             [k : Cont])
+  (doAvgK [x : Value]
+          [y : Value]
+          [k : Cont])
+  (doIf0K [thn : Exp]
+          [els : Exp]
+          [e : Env]
           [k : Cont]))
 
 (module+ test
@@ -79,7 +98,7 @@
        (appE (lamE (list (s-exp->symbol (first bs)))
                    (parse (third (s-exp->list s))))
              (list (parse (second bs)))))]
-    [(s-exp-match? `{lambda {SYMBOL} ANY} s)
+    [(s-exp-match? `{lambda {SYMBOL ...} ANY} s)
      (lamE (map s-exp->symbol (s-exp->list 
                                (second (s-exp->list s))))
            (parse (third (s-exp->list s))))]
@@ -96,7 +115,7 @@
      (if0E (parse (second (s-exp->list s)))
            (parse (third (s-exp->list s)))
            (parse (fourth (s-exp->list s))))]
-    [(s-exp-match? `{ANY ANY} s)
+    [(s-exp-match? `{ANY ANY ...} s)
      (appE (parse (first (s-exp->list s)))
            (map parse (rest (s-exp->list s))))]
     [else (error 'parse "invalid input")]))
@@ -137,16 +156,19 @@
                          (multSecondK r env k))]
     [(lamE ns body)
      (continue k (closV ns body env))]
-    [(appE fun args) (interp fun env
-                             (appArgK (first args) env k))]
+    [(appE f args) (interp f env
+                             (appArgK args env k))]
     [(let/ccE n body)
      (interp body
              (extend-env (bind n (contV k))
                          env)
              k)]
-    [(negE e) (continue k (num* (interp e env k) -1))]
-    [(avgE x y z) ....]
-    [(if0E tst thn els) ....]))
+    [(negE e) (interp e env
+                      (doNegK k))]
+    [(avgE x y z) (interp x env
+                          (avgSecondK y z env k))]
+    [(if0E tst thn els) (interp tst env
+                                (doIf0K thn els env k))]))
 
 (define (continue [k : Cont] [v : Value]) : Value
   (type-case Cont k
@@ -161,9 +183,31 @@
              (doMultK v next-k))]
     [(doMultK v-l next-k)
      (continue next-k (num* v-l v))]
-    [(appArgK a env next-k)
-     (interp a env
-             (doAppK v next-k))]
+    [(appArgK args env next-k)
+     (type-case Value v ; v - the function being applied
+       [(closV c-args body c-env)
+        (type-case (Listof Exp) args
+          [(cons arg rst-args)
+           (interp arg env (appArgRecK v rst-args empty env next-k))] ; 1 or more args - interp args recursively
+          [empty
+           (interp body c-env next-k)])] ; 0 args - just interp
+       [(contV k-v) (interp (first args) env
+                            (doAppK v next-k))]
+       [else (error 'interp "not a function")])]
+    [(appArgRecK f args vals env next-k)
+     (type-case (Listof Exp) args
+       [(cons arg rst-args)
+        (interp arg env ; interp next arg, add prev arg to values, and recurse
+                (appArgRecK f rst-args (append vals (list v)) env next-k))]
+       [empty ; all args interped
+        (type-case Value f
+          [(closV ns body c-env) ; interp function
+           (interp body
+                   (extend-env*
+                    (map2 bind ns (append vals (list v)))
+                    c-env)
+                   next-k)]
+          [else (error 'interp "not a function")])])]
     [(doAppK v-f next-k)
      (type-case Value v-f
        [(closV ns body c-env)
@@ -174,8 +218,19 @@
                 next-k)]
        [(contV k-v) (continue k-v v)]
        [else (error 'interp "not a function")])]
-    [(doNegK v-l next-k)
-     (continue next-k (num* v-l (numV -1)))]))
+    [(doNegK next-k) (continue next-k (num* v (numV -1)))]
+    [(avgSecondK y z env next-k)
+     (interp y env
+             (avgThirdK v z env next-k))]
+    [(avgThirdK x-v z env next-k)
+     (interp z env
+             (doAvgK x-v v next-k))]
+    [(doAvgK x-v y-v next-k)
+     (continue next-k (avgThree x-v y-v v))]
+    [(doIf0K thn els env next-k)
+     (continue next-k (if (equal? v (numV 0))
+                          (interp thn env next-k)
+                          (interp els env next-k)))]))
 
 (module+ test
   (test (interp (parse `2) mt-env (doneK))
@@ -230,6 +285,10 @@
                 (doneK))
         (numV 10))
 
+  (test/exn (continue (doAppK (numV 1) (doneK)) (numV 1))
+            "not a function")
+  (test/exn (continue (appArgRecK (numV 1) (list (numE 1)) empty mt-env (doneK)) (numV 1))
+            "not a function")
   (test/exn (interp (parse `{1 2}) mt-env (doneK))
             "not a function")
   (test/exn (interp (parse `{+ 1 {lambda {x} x}}) mt-env (doneK))
@@ -254,7 +313,7 @@
         (numV 30))
   (test (continue (doMultK (numV 7) (doneK)) (numV 5))
         (numV 35))
-  (test (continue (appArgK (numE 5) mt-env (doneK)) (closV (list 'x) (idE 'x) mt-env))
+  (test (continue (appArgK (list (numE 5)) mt-env (doneK)) (closV (list 'x) (idE 'x) mt-env))
         (numV 5))
   (test (continue (doAppK (closV (list 'x) (idE 'x) mt-env) (doneK)) (numV 8))
         (numV 8)))
@@ -282,8 +341,24 @@
         `2)
   (test (interp-expr (parse `{let/cc k {if0 {k 9} 2 3}}))
         `9)
-  (test/exn (interp-expr (parse `{neg {lambda {x} 12}}))
-            "not a number"))
+  (test (interp-expr (parse `{{lambda {x y} {+ y {neg x}}} 10 12}))
+        `2)
+  (test (interp-expr (parse `{lambda {} 12}))
+        `function)
+  (test (interp-expr (parse `{{lambda {} 12}}))
+        `12)
+  (test (interp-expr (parse `{lambda {x} {lambda {} x}}))
+        `function)
+  (test (interp-expr (parse `{{{lambda {x} {lambda {} x}} 13}}))
+        `13)
+
+  (test (interp-expr (parse `{let/cc esc {{lambda {x y} x} 1 {esc 3}}}))
+        `3)
+  (test (interp-expr (parse `{{let/cc esc {{lambda {x y} {lambda {z} {+ z y}}}
+                                           1 
+                                           {let/cc k {esc k}}}}
+                              10}))
+        `20))
 
 ;; num+ and num* ----------------------------------------
 (define (num-op [op : (Number Number -> Number)] [l : Value] [r : Value]) : Value
@@ -325,3 +400,25 @@
                     (bind 'x (numV 9))
                     (extend-env (bind 'y (numV 8)) mt-env)))
         (numV 8)))
+
+;; Avg -------------------------------------------------
+(define (avgThree [a : Value] [b : Value] [c : Value]) : Value
+  (type-case Value a
+    [(numV n-a) (type-case Value b
+                  [(numV n-b) (type-case Value c
+                                [(numV n-c) (numV (/ (+ (+ n-a n-b) n-c) 3))]
+                                [else (error 'interp "not a number")])]
+                  [else (error 'interp "not a number")])]
+    [else (error 'interp "not a number")]))
+
+(module+ test
+  (test (avgThree (numV 1) (numV 5) (numV 3))
+        (numV 3))
+  (test (avgThree (numV 0) (numV -10) (numV 4))
+        (numV -2))
+  (test/exn (avgThree (contV (doneK)) (numV 1) (numV 1))
+            "not a number")
+  (test/exn (avgThree (numV 1) (contV (doneK)) (numV 1))
+            "not a number")
+  (test/exn (avgThree (numV 1) (numV 1) (contV (doneK)))
+            "not a number"))
