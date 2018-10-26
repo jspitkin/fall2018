@@ -26,7 +26,9 @@
         [z : Exp])
   (if0E [tst : Exp]
        [thn : Exp]
-       [els : Exp]))
+       [els : Exp])
+  (tryE [body : Exp]
+        [handle : Exp]))
 
 (define-type Binding
   (bind [name : Symbol]
@@ -75,7 +77,10 @@
   (doIf0K [thn : Exp]
           [els : Exp]
           [e : Env]
-          [k : Cont]))
+          [k : Cont])
+  (tryK [handle : Exp]
+        [env : Env]
+        [k : Cont]))
 
 (module+ test
   (print-only-errors #t))
@@ -115,6 +120,9 @@
      (if0E (parse (second (s-exp->list s)))
            (parse (third (s-exp->list s)))
            (parse (fourth (s-exp->list s))))]
+    [(s-exp-match? `{try ANY {lambda {} ANY}} s)
+     (tryE (parse (second (s-exp->list s)))
+           (parse (third (s-exp->list (third (s-exp->list s))))))]
     [(s-exp-match? `{ANY ANY ...} s)
      (appE (parse (first (s-exp->list s)))
            (map parse (rest (s-exp->list s))))]
@@ -168,7 +176,9 @@
     [(avgE x y z) (interp x env
                           (avgSecondK y z env k))]
     [(if0E tst thn els) (interp tst env
-                                (doIf0K thn els env k))]))
+                                (doIf0K thn els env k))]
+    [(tryE body handle)
+     (interp body env (tryK handle env k))]))
 
 (define (continue [k : Cont] [v : Value]) : Value
   (type-case Cont k
@@ -184,24 +194,24 @@
     [(doMultK v-l next-k)
      (continue next-k (num* v-l v))]
     [(appArgK args env next-k)
-     (type-case Value v ; v - the function being applied
+     (type-case Value v
        [(closV c-args body c-env)
         (type-case (Listof Exp) args
           [(cons arg rst-args)
-           (interp arg env (appArgRecK v rst-args empty env next-k))] ; 1 or more args - interp args recursively
+           (interp arg env (appArgRecK v rst-args empty env next-k))]
           [empty
-           (interp body c-env next-k)])] ; 0 args - just interp
+           (interp body c-env next-k)])]
        [(contV k-v) (interp (first args) env
                             (doAppK v next-k))]
        [else (error 'interp "not a function")])]
     [(appArgRecK f args vals env next-k)
      (type-case (Listof Exp) args
        [(cons arg rst-args)
-        (interp arg env ; interp next arg, add prev arg to values, and recurse
+        (interp arg env
                 (appArgRecK f rst-args (append vals (list v)) env next-k))]
-       [empty ; all args interped
+       [empty
         (type-case Value f
-          [(closV ns body c-env) ; interp function
+          [(closV ns body c-env)
            (interp body
                    (extend-env*
                     (map2 bind ns (append vals (list v)))
@@ -230,9 +240,13 @@
     [(doIf0K thn els env next-k)
      (continue next-k (if (equal? v (numV 0))
                           (interp thn env next-k)
-                          (interp els env next-k)))]))
+                          (interp els env next-k)))]
+    [(tryK handler env next-k)
+     (continue next-k v)]))
 
 (module+ test
+  (test (interp (parse `{try 0 {lambda {} 8}}) mt-env (doneK))
+        (numV 0))
   (test (interp (parse `2) mt-env (doneK))
         (numV 2))
   (test/exn (interp (parse `x) mt-env (doneK))
