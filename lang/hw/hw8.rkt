@@ -296,7 +296,7 @@
         result-reg)
       ;; updated-ptr points to first gray object:
       (case (ref updated-ptr-reg 0)
-        [(0 15 19)
+        [(0 15)
          ;; Record has just an integer
          (done 1)]
         [(1 3 5)
@@ -321,7 +321,7 @@
            (move! 3)
            (move! 4)
            (done 4))]
-        [(20 21)
+        [(19 20 21)
          (begin
            (move! 1)
            (done 1))])))
@@ -510,7 +510,7 @@
        (case (ref v-reg 0)
          [(19)
           (begin
-            (set! v-reg (ref v-reg 2))
+            (set! v-reg (ref v-reg 1))
             (set! k-reg (ref k-reg 1))
             (continue))]
          [else (error 'interp "not a box")])]))
@@ -722,4 +722,15 @@
                    mt-env)
                   empty-env
                   (init-k))
-         1))
+         1)
+  (reset!)
+  (ntest (interpx (compile
+                   (parse `{{lambda {b}
+                              {{lambda {z}
+                                 {unbox b}}
+                               {set-box! b {+ {unbox b} 1}}}}
+                            {box 3}})
+                   mt-env)
+                  empty-env
+                  (init-k))
+         4))
