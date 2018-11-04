@@ -25,10 +25,11 @@
   (selectE [num-expr : Exp]
            [obj-expr : Exp])
   (instanceOfE [obj-expr : Exp]
-               [class-name : Symbol]))
+               [search-class-name : Symbol]))
 
 (define-type Class
-  (classC [field-names : (Listof Symbol)]
+  (classC [super-name : Symbol]
+          [field-names : (Listof Symbol)]
           [methods : (Listof (Symbol * Exp))]))
 
 (define-type Value
@@ -84,7 +85,7 @@
          (type-case Value (recur obj-expr)
            [(objV class-name field-vals)
             (type-case Class (find classes class-name)
-              [(classC field-names methods)
+              [(classC super-name field-names methods)
                (find (map2 (lambda (n v) (values n v))
                            field-names
                            field-vals)
@@ -111,12 +112,19 @@
                        (recur (sendE obj-expr 'zero (numE 0)))
                        (recur (sendE obj-expr 'nonzero (numE 0))))]
              [else (error 'interp "not a number")]))]
-        [(instanceOfE obj-expr class-name) ....]))))
+        [(instanceOfE obj-expr search-class-name)
+         (local [(define obj-val (recur obj-expr))]
+           (type-case Value obj-val
+             [(objV class-name field-values)
+              (if (isInstanceOf classes search-class-name class-name)
+                  (numV 0)
+                  (numV 1))]
+             [else (error 'interp "not an object")]))]))))
 
 (define (call-method class-name method-name classes
                      obj arg-val)
   (type-case Class (find classes class-name)
-    [(classC field-names methods)
+    [(classC super-class field-names methods)
      (let ([body-expr (find methods method-name)])
        (interp body-expr
                classes
@@ -135,13 +143,21 @@
 (define (num+ x y) (num-op + '+ x y))
 (define (num* x y) (num-op * '* x y))
 
+(define (isInstanceOf [classes : (Listof (Symbol * Class))] [search-class-name : Symbol] [class-name : Symbol]) : Boolean
+  (if (eq? search-class-name class-name)
+      #t
+      (if (eq? class-name 'Object)
+          #f
+          (isInstanceOf classes search-class-name (classC-super-name (find classes class-name))))))
+
 ;; ----------------------------------------
 ;; Examples
 
 (module+ test
   (define posn-class
     (values 'Posn
-            (classC 
+            (classC
+             'Object
              (list 'x 'y)
              (list (values 'mdist
                            (plusE (getE (thisE) 'x) (getE (thisE) 'y)))
@@ -155,7 +171,8 @@
     
   (define posn3D-class
     (values 'Posn3D
-            (classC 
+            (classC
+             'Posn
              (list 'x 'y 'z)
              (list (values 'mdist (plusE (getE (thisE) 'z)
                                          (ssendE (thisE) 'Posn 'mdist (argE))))
@@ -163,7 +180,8 @@
 
   (define cond-class
     (values 'Conditional
-            (classC 
+            (classC
+             'Object
              empty
              (list (values 'zero
                            (numE 0))
@@ -286,7 +304,7 @@
                method-name
                (recur arg-expr))]
       [(selectI num-expr obj-expr) (selectE (recur num-expr) (recur obj-expr))]
-      [(instanceOfI obj-expr class-name) ....])))
+      [(instanceOfI obj-expr class-name) (instanceOfE (recur obj-expr) class-name)])))
 
 (module+ test
   (test (exp-i->c (numI 10) 'Object)
@@ -316,6 +334,7 @@
   (type-case ClassI c
     [(classI super-name field-names methods)
      (classC
+      super-name
       field-names
       (map (lambda (m)
              (values (fst m)
@@ -340,7 +359,8 @@
              (list posn3d-mdist-i-method))))
   (define posn3d-c-class-not-flat
     (values 'Posn3D
-            (classC (list 'z)
+            (classC 'Posn
+                    (list 'z)
                     (list posn3d-mdist-c-method))))
 
   (test (class-i->c-not-flat (snd posn3d-i-class))
@@ -352,10 +372,11 @@
                        [classes-not-flat : (Listof (Symbol * Class))] 
                        [i-classes : (Listof (Symbol * ClassI))]) : Class
   (type-case Class (find classes-not-flat name)
-    [(classC field-names methods)
+    [(classC super-class field-names methods)
      (type-case Class (flatten-super name classes-not-flat i-classes)
-       [(classC super-field-names super-methods)
+       [(classC super-super-class super-field-names super-methods)
         (classC
+         super-class
          (add-fields super-field-names field-names)
          (add/replace-methods super-methods methods))])]))
 
@@ -365,7 +386,7 @@
   (type-case ClassI (find i-classes name)
     [(classI super-name field-names i-methods)
      (if (equal? super-name 'Object)
-         (classC empty empty)
+         (classC super-name empty empty)
          (flatten-class super-name
                         classes-not-flat
                         i-classes))]))
@@ -389,14 +410,16 @@
   (define posn-c-class-not-flat
     (values
      'Posn
-    (classC (list 'x 'y)
-            (list (values 'mdist
-                          (plusE (getE (thisE) 'x)
-                                 (getE (thisE) 'y)))
-                  addDist-c-method))))
+     (classC 'Object
+             (list 'x 'y)
+             (list (values 'mdist
+                           (plusE (getE (thisE) 'x)
+                                  (getE (thisE) 'y)))
+                   addDist-c-method))))
   (define posn3d-c-class
     (values 'Posn3D
-            (classC (list 'x 'y 'z)
+            (classC 'Posn
+                    (list 'x 'y 'z)
                     (list posn3d-mdist-c-method
                           addDist-c-method))))
 
@@ -680,4 +703,6 @@
                            `{class Hammerhead extends Shark
                               {}})
                      `{instanceof {new Hammerhead 1 2 3} Fish})
-        `0))
+        `0)
+  (test/exn (interp-prog empty `{instanceof {+ 1 2} Object})
+            "not an object"))
