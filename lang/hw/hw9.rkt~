@@ -21,11 +21,7 @@
   (ssendE [obj-expr : Exp]
           [class-name : Symbol]
           [method-name : Symbol]
-          [arg-expr : Exp])
-  (selectE [num-expr : Exp]
-           [obj-expr : Exp])
-  (instanceOfE [obj-expr : Exp]
-               [class-name : Symbol]))
+          [arg-expr : Exp]))
 
 (define-type Class
   (classC [field-names : (Listof Symbol)]
@@ -73,13 +69,11 @@
         [(thisE ) this-val]
         [(argE ) arg-val]
         [(newE class-name field-exprs)
-         (if (eq? 'Object class-name)
-             (objV 'Object empty)
-             (local [(define c (find classes class-name))
-                     (define vals (map recur field-exprs))]
-               (if (= (length vals) (length (classC-field-names c)))
-                   (objV class-name vals)
-                   (error 'interp "wrong field count"))))]
+         (local [(define c (find classes class-name))
+                 (define vals (map recur field-exprs))]
+           (if (= (length vals) (length (classC-field-names c)))
+               (objV class-name vals)
+               (error 'interp "wrong field count")))]
         [(getE obj-expr field-name)
          (type-case Value (recur obj-expr)
            [(objV class-name field-vals)
@@ -102,16 +96,7 @@
          (local [(define obj (recur obj-expr))
                  (define arg-val (recur arg-expr))]
            (call-method class-name method-name classes
-                        obj arg-val))]
-        [(selectE num-expr obj-expr)
-         (local [(define num-val (recur num-expr))]
-           (type-case Value num-val
-             [(numV n)
-              (if (eq? n 0)
-                       (recur (sendE obj-expr 'zero (numE 0)))
-                       (recur (sendE obj-expr 'nonzero (numE 0))))]
-             [else (error 'interp "not a number")]))]
-        [(instanceOfE obj-expr class-name) ....]))))
+                        obj arg-val))]))))
 
 (define (call-method class-name method-name classes
                      obj arg-val)
@@ -161,15 +146,6 @@
                                          (ssendE (thisE) 'Posn 'mdist (argE))))
                    (values 'addDist (ssendE (thisE) 'Posn 'addDist (argE)))))))
 
-  (define cond-class
-    (values 'Conditional
-            (classC 
-             empty
-             (list (values 'zero
-                           (numE 0))
-                   (values 'nonzero
-                           (numE 1))))))
-
   (define new-posn27 (newE 'Posn (list (numE 2) (numE 7))))
   (define new-posn531 (newE 'Posn3D (list (numE 5) (numE 3) (numE 1))))
 
@@ -188,12 +164,7 @@
   (test (interp (multE (numE 10) (numE 7))
                 empty (objV 'Object empty) (numV 0))
         (numV 70))
-  (test (interp (selectE (numE 0) (newE 'Conditional empty))
-                (list cond-class) (objV 'Object empty) (numV 0))
-        (numV 0))
-  (test (interp (selectE (numE 2) (newE 'Conditional empty))
-                (list cond-class) (objV 'Object empty) (numV 0))
-        (numV 1))
+
   (test (interp-posn (newE 'Posn (list (numE 2) (numE 7))))
         (objV 'Posn (list (numV 2) (numV 7))))
 
@@ -220,13 +191,7 @@
   (test/exn (interp-posn (ssendE (numE 1) 'Posn 'mdist (numE 0)))
             "not an object")
   (test/exn (interp-posn (newE 'Posn (list (numE 0))))
-            "wrong field count")
-  (test/exn (interp (selectE (thisE) (newE 'Conditional empty))
-                    (list cond-class) (objV 'Object empty) (numV 0))
-            "not a number")
-  (test/exn (interp (selectE (numE 0) (numE 0))
-                    (list cond-class) (objV 'Object empty) (numV 0))
-            "not an object"))
+            "wrong field count"))
 
 ;; ============================================================
 ;; inherit
@@ -247,11 +212,7 @@
          [method-name : Symbol]
          [arg-expr : ExpI])
   (superI [method-name : Symbol]
-          [arg-expr : ExpI])
-  (selectI [num-expr : ExpI]
-           [obj-expr : ExpI])
-  (instanceOfI [obj-expr : ExpI]
-              [class-name : Symbol]))
+          [arg-expr : ExpI]))
 
 (define-type ClassI
   (classI [super-name : Symbol]
@@ -284,9 +245,7 @@
        (ssendE (thisE)
                super-name
                method-name
-               (recur arg-expr))]
-      [(selectI num-expr obj-expr) (selectE (recur num-expr) (recur obj-expr))]
-      [(instanceOfI obj-expr class-name) ....])))
+               (recur arg-expr))])))
 
 (module+ test
   (test (exp-i->c (numI 10) 'Object)
@@ -306,9 +265,7 @@
   (test (exp-i->c (sendI (numI 1) 'mdist (numI 2)) 'Object)
         (sendE (numE 1) 'mdist (numE 2)))
   (test (exp-i->c (superI 'mdist (numI 2)) 'Posn)
-        (ssendE (thisE) 'Posn 'mdist (numE 2)))
-  (test (exp-i->c (selectI (numI 1) (newI 'Object (list (numI 1)))) 'Object)
-        (selectE (numE 1) (newE 'Object (list (numE 1))))))
+        (ssendE (thisE) 'Posn 'mdist (numE 2))))
 
 ;; ----------------------------------------
 
@@ -550,12 +507,6 @@
    [(s-exp-match? `{super SYMBOL ANY} s)
     (superI (s-exp->symbol (second (s-exp->list s)))
             (parse (third (s-exp->list s))))]
-   [(s-exp-match? `{select ANY ANY} s)
-    (selectI (parse (second (s-exp->list s)))
-             (parse (third (s-exp->list s))))]
-   [(s-exp-match? `{instanceof ANY SYMBOL} s)
-    (instanceOfI (parse (second (s-exp->list s)))
-                 (s-exp->symbol (third (s-exp->list s))))]
    [else (error 'parse "invalid input")]))
 
 (module+ test
@@ -633,51 +584,4 @@
                              {super mdist arg}}]})
          
          `{send {new Posn3D 5 3 1} addDist {new Posn 2 7}})
-        `18)
-  (test (interp-prog (list)
-                     `{new Object})
-        `object)
-  (test (interp-prog (list `{class Fish extends Object
-                               {size color}})
-                     `{new Object})
-        `object)
-  (test (interp-prog (list `{class Snowball extends Object
-                              {size}
-                              [zero {arg} this]
-                              [nonzero {arg}
-                                       {new Snowball {+ 1 {get this size}}}]})
-                     `{get {select 0 {new Snowball 1}} size})
-        `1)
-  (test (interp-prog (list `{class Snowball extends Object
-                              {size}
-                              [zero {arg} this]
-                              [nonzero {arg}
-                                       {new Snowball {+ 1 {get this size}}}]})
-                     `{get {select {+ 1 2} {new Snowball 1}} size})
-        `2)
-  (test (interp-prog (list `{class Fish extends Object
-                               {size color}})
-                     `{instanceof {new Fish 1 2} Object})
-        `0)
-  (test (interp-prog (list `{class Fish extends Object
-                               {size color}})
-                     `{instanceof {new Object} Fish})
-        `1)
-  (test (interp-prog (list `{class Fish extends Object
-                              {size color}})
-                     `{instanceof {new Fish 1 2} Fish})
-        `0)
-  (test (interp-prog (list `{class Fish extends Object
-                              {size color}}
-                           `{class Shark extends Fish
-                              {teeth}})
-                     `{instanceof {new Shark 1 2 3} Fish})
-        `0)
-  (test (interp-prog (list `{class Fish extends Object
-                              {size color}}
-                           `{class Shark extends Fish
-                              {teeth}}
-                           `{class Hammerhead extends Shark
-                              {}})
-                     `{instanceof {new Hammerhead 1 2 3} Fish})
-        `0))
+        `18))
