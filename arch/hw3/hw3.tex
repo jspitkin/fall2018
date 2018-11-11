@@ -9,6 +9,9 @@
 }
 
 \usepackage{url}
+\usepackage{mathtools}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 \usepackage{caption}
 \usepackage{amsmath,amsthm,enumitem,amssymb}
 \usepackage{graphicx}
@@ -110,221 +113,165 @@ Consider a 256K main memory system with a direct mapped cache that stores up to 
 
 \texttt{170 , 257, 168, 246, 176, 175, 176, 177, 175, 176, 177, 175, 176, 177, 176, 175, 174, 173, 172, 171, 170, 169, 168, 167, 168, 165, 164}
 
-\textbf{1. Address 170 is a miss:}
+\textbf{Assumptions:} Memory is zero-indexed. The replacement policy is unused as this is a direct mapped cache. We fetch a block of 4 contiguous words at a time when accessing memory and caching.
+
+To determine the location where a block of memory will be stored in the cache we can first calculate its block address and then mod that by the number of blocks in the cache. This is similar to modulo hashing done in the slides but we first break memory up into 4 word blocks.
+
+$$Cache \ Location = Block \ Address \ \% \ Cache \ Size$$
+$$Cache \ Location = \floor*{address / 4} \ \% \ 4$$
+
+\textbf{1. Address: 170, Block: 168-171, Cache Location: 2, Hit/Miss: Miss.}
 
 \begin{center}
 	\begin{tabular}{ |c|c|c|c|c| } 
 		\hline
 		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
 		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
+		\textbf{Block 0} &  &  & & \\ 
 		\hline
-		\textbf{Block 2} &  &   &  &\\ 
+		\textbf{Block 1} &  &   &  &\\ 
+		\hline
+		\textbf{Block 2} & 168 & 169  & 170 & 171\\ 
 		\hline
 		\textbf{Block 3} &  &   &  &\\ 
 		\hline
-		\textbf{Block 4} &  &   &  &\\ 
-		\hline
 	\end{tabular}
 \end{center}
 
-\textbf{2. Address 257 is a miss:}
+\textbf{2. Address: 257, Block: 256-259, Cache Location: 0, Hit/Miss: Miss.}
 
 \begin{center}
 	\begin{tabular}{ |c|c|c|c|c| } 
 		\hline
 		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
 		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
+		\textbf{Block 0} &  256 &  257 & 258 & 259\\ 
 		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
+		\textbf{Block 1} &  &   &  &\\ 
+		\hline
+		\textbf{Block 2} & 168 & 169  & 170 & 171\\ 
 		\hline
 		\textbf{Block 3} &  &   &  &\\ 
 		\hline
-		\textbf{Block 4} &  &   &  &\\ 
-		\hline
 	\end{tabular}
 \end{center}
 
-\textbf{3. Address 168 is a miss:}
+\textbf{3. Address: 168, Hit/Miss: Hit.}
+
+\textbf{4. Address: 246, Block: 244-247, Cache Location: 1, Hit/Miss: Miss.}
 
 \begin{center}
 	\begin{tabular}{ |c|c|c|c|c| } 
 		\hline
 		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
 		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
+		\textbf{Block 0} &  256 &  257 & 258 & 259\\ 
 		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
+		\textbf{Block 1} &  244 & 245 & 246 & 247\\ 
 		\hline
-		\textbf{Block 3} & 168 &  169 & 170 & 171\\ 
+		\textbf{Block 2} & 168 & 169  & 170 & 171\\ 
 		\hline
-		\textbf{Block 4} &  &   &  &\\ 
+		\textbf{Block 3} &  &   &  &\\ 
 		\hline
 	\end{tabular}
 \end{center}
 
-\textbf{4. Address 246 is a miss:}
+\textbf{5. Address: 176, Block: 176-179, Cache Location: 0, Hit/Miss: Miss.}
 
 \begin{center}
 	\begin{tabular}{ |c|c|c|c|c| } 
 		\hline
 		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
 		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
+		\textbf{Block 0} &  176 &  177 & 178 & 179\\ 
 		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
+		\textbf{Block 1} &  244 & 245 & 246 & 247\\ 
 		\hline
-		\textbf{Block 3} & 168 &  169 & 170 & 171\\ 
+		\textbf{Block 2} & 168 & 169  & 170 & 171\\ 
 		\hline
-		\textbf{Block 4} & 246 & 247  & 248 & 249\\ 
+		\textbf{Block 3} &  &   &  &\\ 
 		\hline
 	\end{tabular}
 \end{center}
 
-\textbf{5. Address 176 is a miss - updating block 4:}
+\textbf{6. Address: 175, Block: 172-175, Cache Location: 3, Hit/Miss: Miss.}
 
 \begin{center}
 	\begin{tabular}{ |c|c|c|c|c| } 
 		\hline
 		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
 		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
+		\textbf{Block 0} &  176 &  177 & 178 & 179\\ 
 		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
+		\textbf{Block 1} &  244 & 245 & 246 & 247\\ 
 		\hline
-		\textbf{Block 3} & 168 &  169 & 170 & 171\\ 
+		\textbf{Block 2} & 168 & 169  & 170 & 171\\ 
 		\hline
-		\textbf{Block 4} & 176 & 177  & 178 & 179\\ 
+		\textbf{Block 3} & 172 & 173 & 174 & 175\\ 
 		\hline
 	\end{tabular}
 \end{center}
 
-\textbf{6. Address 175 is a miss - updating block 4:}
+\textbf{7. Address: 176, Hit/Miss: Hit.}
+
+\textbf{8. Address: 177, Hit/Miss: Hit.}
+
+\textbf{9. Address: 175, Hit/Miss: Hit.}
+
+\textbf{10. Address: 176, Hit/Miss: Hit.}
+
+\textbf{11. Address: 177, Hit/Miss: Hit.}
+
+\textbf{12. Address: 175, Hit/Miss: Hit.}
+
+\textbf{13. Address: 176, Hit/Miss: Hit.}
+
+\textbf{14. Address: 177, Hit/Miss: Hit.}
+
+\textbf{15. Address: 176, Hit/Miss: Hit.}
+
+\textbf{16. Address: 175, Hit/Miss: Hit.}
+
+\textbf{17. Address: 174, Hit/Miss: Hit.}
+
+\textbf{18. Address: 173, Hit/Miss: Hit.}
+
+\textbf{19. Address: 172, Hit/Miss: Hit.}
+
+\textbf{20. Address: 171, Hit/Miss: Hit.}
+
+\textbf{21. Address: 170, Hit/Miss: Hit.}
+
+\textbf{22. Address: 169, Hit/Miss: Hit.}
+
+\textbf{23. Address: 168, Hit/Miss: Hit.}
+
+\textbf{24. Address: 167, Hit/Miss: Hit.}
+
+\textbf{25. Address: 168, Hit/Miss: Hit.}
+
+\textbf{26. Address: 165, Block: 164-167, Cache Location: 1, Hit/Miss: Miss.}
 
 \begin{center}
 	\begin{tabular}{ |c|c|c|c|c| } 
 		\hline
 		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
 		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
+		\textbf{Block 0} &  176 &  177 & 178 & 179\\ 
 		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
+		\textbf{Block 1} &  164 & 165 & 166 & 167\\ 
 		\hline
-		\textbf{Block 3} & 168 &  169 & 170 & 171\\ 
+		\textbf{Block 2} & 168 & 169  & 170 & 171\\ 
 		\hline
-		\textbf{Block 4} & 175 & 176  & 177 & 178\\ 
-		\hline
-	\end{tabular}
-\end{center}
-
-\textbf{7. Address 176 is a hit in block 4.}
-
-\textbf{8. Address 177 is a hit in block 4.}
-
-\textbf{9. Address 175 is a hit in block 4.}
-
-\textbf{10. Address 176 is a hit in block 4.}
-
-\textbf{11. Address 177 is a hit in block 4.}
-
-\textbf{12. Address 175 is a hit in block 4.}
-
-\textbf{13. Address 176 is a hit in block 4.}
-
-\textbf{14. Address 177 is a hit in block 4.}
-
-\textbf{15. Address 176 is a hit in block 4.}
-
-\textbf{16. Address 175 is a hit in block 4.}
-
-\textbf{17. Address 174 is a miss - updating block 4:}
-
-\begin{center}
-	\begin{tabular}{ |c|c|c|c|c| } 
-		\hline
-		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
-		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
-		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
-		\hline
-		\textbf{Block 3} & 168 &  169 & 170 & 171\\ 
-		\hline
-		\textbf{Block 4} & 174 & 175  & 176 & 177\\ 
+		\textbf{Block 3} & 172 & 173 & 174 & 175\\ 
 		\hline
 	\end{tabular}
 \end{center}
 
-\textbf{18. Address 173 is a hit in block 1.}
+\textbf{27. Address: 164, Hit/Miss: Hit.}
 
-\textbf{19. Address 172 is a hit in block 1.}
+\fbox{\parbox{\linewidth}{Lookups: $27$ \\ Hits: $21$ \\Misses: $6$ \\ Hit rate: $21/27$ or $77.78\%$}}
 
-\textbf{20. Address 171 is a hit in block 1.}
-
-\textbf{21. Address 170 is a hit in block 1.}
-
-\textbf{22. Address 169 is a hit in block 3.}
-
-\textbf{23. Address 168 is a hit in block 3.}
-
-\textbf{24. Address 167 is a miss - updating block 3:}
-
-\begin{center}
-	\begin{tabular}{ |c|c|c|c|c| } 
-		\hline
-		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
-		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
-		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
-		\hline
-		\textbf{Block 3} & 167 &  168 & 169 & 170\\ 
-		\hline
-		\textbf{Block 4} & 174 & 175  & 176 & 177\\ 
-		\hline
-	\end{tabular}
-\end{center}
-
-\textbf{25. Address 168 is a hit in block 3.}
-
-\textbf{26. Address 165 is a miss - updating block 3:}
-
-\begin{center}
-	\begin{tabular}{ |c|c|c|c|c| } 
-		\hline
-		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
-		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
-		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
-		\hline
-		\textbf{Block 3} & 165 &  166 & 167 & 168\\ 
-		\hline
-		\textbf{Block 4} & 174 & 175  & 176 & 177\\ 
-		\hline
-	\end{tabular}
-\end{center}
-
-\textbf{27. Address 164 is a miss - updating block 3:}
-
-\begin{center}
-	\begin{tabular}{ |c|c|c|c|c| } 
-		\hline
-		&\textbf{Word 1}& \textbf{Word 2}& \textbf{Word 3} & \textbf{Word 4}\\ 
-		\hline
-		\textbf{Block 1} & 170 & 171  & 172 & 173\\ 
-		\hline
-		\textbf{Block 2} & 257 & 258  & 259 & 260\\ 
-		\hline
-		\textbf{Block 3} & 164 &  165 & 166 & 167\\ 
-		\hline
-		\textbf{Block 4} & 174 & 175  & 176 & 177\\ 
-		\hline
-	\end{tabular}
-\end{center}
-
-\fbox{\parbox{\linewidth}{Lookups: $27$ \\Misses: $10$ (4 compulsory misses and 6 capacity misses)\\ Hit rate: $17/27$ or $62.69\%$}}
 
 \item \textbf{Cache Performance.}
 Consider the following  pseudo code; suppose that \textbf{X} and \textbf{Y} are allocated as contiguous integer arrays in memory and are aligned to the 4KB boundaries.
