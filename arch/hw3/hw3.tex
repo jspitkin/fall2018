@@ -117,8 +117,10 @@ Consider a 256K main memory system with a direct mapped cache that stores up to 
 
 To determine the location where a block of memory will be stored in the cache we can first calculate its block address and then mod that by the number of blocks in the cache. This is similar to modulo hashing done in the slides but we first break memory up into 4 word blocks.
 
-$$Cache \ Location = Block \ Address \ \% \ Cache \ Size$$
-$$Cache \ Location = \floor*{address / 4} \ \% \ 4$$
+\begin{align*}
+Cache \ Location &= Block \ Address \ \% \ Cache \ Size \\
+Cache \ Location &= \floor*{address / 4} \ \% \ 4
+\end{align*}
 
 \textbf{1. Address: 170, Block: 168-171, Cache Location: 2, Hit/Miss: Miss.}
 
@@ -312,8 +314,64 @@ We execute the code on a machine where the integer type (\textbf{int}) is 4 byte
 address up to 16GB of main memory.  Compute the size of the tag arrays in KB for each level.\textbf{(15 points)}
 
 
+\textbf{Level-1 Cache}
 
+First we need to calculate the tag bits to know the size of the tag arrays for level. This can be done by considering the address bits and how those are distributed to the byte offset, index, and tag bits:
 
+\begin{align*}
+\text{address bits} &= \text{34 bits} \  (16GB = 2^{34} B) \\
+\text{byte offset bits} &= \text{4 bits} \ (16B = 2^4) \\
+\text{index bits} &= \text{32KB/16B} = \text{11 bits} \ (2^{11})\\
+\text{tag bits} &= 34 - 4 - 11 = 19 \ \text{bits}         
+\end{align*}
+
+For each block there will be a tag so we multiply the number of tag bits by the number of blocks:
+
+\begin{align*}
+\text{tag array size for L1} &= 19 \ \text{bits} * 2^{11} = 39, 912 \text{bits} = 4.989 \ \text{KB} 	
+\end{align*}
+
+\textbf{Level-2 Cache}
+
+\textbf{Assumption:} "Cache line" means cache block and not cache row (as per Canvas discussion). Therefore a cache row is 2 * 64B = 128B wide.\\ \\
+Level two will have the same address bits but we will recalculate the distribution of the other bits:
+
+\begin{align*}
+\text{address bits} &= \text{34 bits} \  (16GB = 2^{34} B) \\
+\text{byte offset bits} &= \text{6 bits} \ (64B = 2^6) \\
+\text{index bits} &= \text{256KB/(2 * 64B)} = \text{11 bits} \ (2^{11})\\
+\text{tag bits} &= 34 - 6 - 11 =  17 \ \text{bits}         
+\end{align*}
+
+For each block there will be a tag so we multiply the number of tag bits by the number of blocks:
+
+\begin{align*}
+\text{tag array size for L2} &= 17 \ \text{bits} * 2 * 2^{11} = 69,632 \text{bits} = 8.704 \ \text{KB} 	
+\end{align*}
+
+\textbf{Level-3 Cache}
+
+\textbf{Assumption:} "Cache line" means cache block and not cache row (as per Canvas discussion). Therefore a cache row is 4 * 64B = 256B wide.\\ \\
+
+Level three will have the same address bits but we will recalculate the distribution of the other bits:
+
+\begin{align*}
+\text{address bits} &= \text{34 bits} \  (16GB = 2^{34} B) \\
+\text{byte offset bits} &= \text{6 bits} \ (64B = 2^6) \\
+\text{index bits} &= \text{1MB/(4 * 64B)} = \text{12 bits} \ (2^{12})\\
+\text{tag bits} &= 34 - 6 - 12 =  16 \ \text{bits}         
+\end{align*}
+
+For each block there will be a tag so we multiply the number of tag bits by the number of blocks:
+
+\begin{align*}
+\text{tag array size for L3} &= 16 \ \text{bits} * 4 * 2^{12} = 262,144 \text{bits} = 32.768 \ \text{KB} 	
+\end{align*}
+
+\fbox{\parbox{\linewidth}{L1: $4.989KB$ \\ 
+L2: $8.704KB$ \\
+L3: $32.768KB$ \\ 
+Total: $46.461KB$}}
 
 \item \textbf{Cache and Memory Model using CACTI }
 
