@@ -316,7 +316,27 @@ We can now calculate the address bits, byte offset bits, index bits, and tag bit
 \text{tag bits} &= 23 - 5 - 6 = 12 \ \text{bits}         
 \end{align*}
 
-Now we can consider the access pattern of the \texttt{load} and \texttt{store} operations. Given the arrangement of the code we will be making alternating \texttt{load} (to get a value out of X) and \texttt{store}s (to place it in Y). Given \texttt{X[k*M+l]} and the arrangement of the for-loops, each \texttt{load} operation will be sequential in memory (X[0], X[1], X[2], .... X[1,048,575]). Given \texttt{Y[l*M+k]}, the \texttt{store} operations will not be sequential in memory (Y[0], Y[1,024], Y[2,048], ... Y[1,047,552], Y[1], Y[1,025], Y[2,049] ... Y[1,047,553], ...).
+Something to note: given X and Y are contiguous in memory, they both start on a multiple of a 4KB address, and our cache "resets" its indexing to 0 every 2KB (64 rows in the cache with a 32B block size) then the memory location X[a] and Y[a], where a is in the range $[0, 1048575]$, will be mapped to the same line in the cache.
+
+Now we can consider the access pattern of the \texttt{load} and \texttt{store} operations. Given the arrangement of the code we will be making alternating \texttt{load} (to get a value out of X) and \texttt{store}s (to place it in Y). 
+
+Given \texttt{X[k*M+l]} and the arrangement of the for-loops, each \texttt{load} operation will be sequential in memory (X[0], X[1], X[2], .... X[1,048,575]). 
+
+Given \texttt{Y[l*M+k]}, the \texttt{store} operations will not be sequential in memory (Y[0], Y[1,024], Y[2,048], ... Y[1,047,552], Y[1], Y[1,025], Y[2,049] ... Y[1,047,553], ...) but rather make 1,024 size hops until the end of the array is reached, increase by 1, and repeat 1,024 times.
+
+For the accesses to the X array, we will have a compulsory miss and bring a 32-bytes (8-words) into a cache block. This will provide a hit for the proceeding 7 words as X is stored and accessed contiguously. Each integer in X is only used once so we only get spatial locality from the cache for X.
+
+For the accesses to the Y array, we will not gain any spatial locality. As our sequences of accesses to Y are always 1024 addresses away from each other but Y is stored contiguously. We make stores that will hit all 64 lines of the cache multiple times in the 1024 access that will occur until we could take advantage of what is cached. Similar to X, each location in Y is only accessed once. Thus we will miss every time with Y's stores.
+
+The accesses to Y won't interrupt the spatial locality we gain from X because we are using a 2-way set-associative cache with LRU. LRU is important as we will always evict the Y block (as the X will be the most recently used).
+
+In summary:
+
+\fbox{\parbox{\linewidth}{X array \texttt{load} operation hit ratio: 7/8 \\ 
+Y array \texttt{store} operation hits: 0 \\
+\texttt{load} ratio of total operations: 1/2 \\ 
+\texttt{store} ratio of total operations: 1/2 \\
+Overall hit rate: 1/2 * 7/8 + 1/2 * 0 = $43.75\%$}}
 
 \item Consider a 4KB fully associative cache architecture with 32-byte blocks. The replacement policy is LRU. Rewrite the code to remove  all of the non-compulsory misses. (You need to ensure the new code generate the exact same output in the main memory.You are allowed to add a nested for loop to the code if necessary.) Please provide explanation on how the new code can remove those misses.\textbf{(15 points)}
 
