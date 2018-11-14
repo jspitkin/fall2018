@@ -6,7 +6,9 @@
   (falseV)
   (closV [arg : Symbol]
          [body : Exp]
-         [env : Env]))
+         [env : Env])
+  (pairV [fst-v : Value]
+         [snd-v : Value]))
 
 (define-type Exp
   (numE [n : Number])
@@ -20,19 +22,25 @@
   (lamE [n : Symbol]
         [arg-type : Type]
         [body : Exp])
-  (appE [fun : Exp]
-        [arg : Exp])
   (equalE [l : Exp]
           [r : Exp])
   (ifE [cnd : Exp]
        [thn : Exp]
-       [els : Exp]))
+       [els : Exp])
+  (pairE [fst : Exp]
+         [snd : Exp])
+  (fstE [pair : Exp])
+  (sndE [pair : Exp])
+  (appE [fun : Exp]
+        [arg : Exp]))
 
 (define-type Type
   (numT)
   (boolT)
   (arrowT [arg : Type]
-          [result : Type]))
+          [result : Type])
+  (crossT [fst-t : Type]
+         [snd-t : Type]))
 
 (define-type Binding
   (bind [name : Symbol]
@@ -87,6 +95,13 @@
      (ifE (parse (second (s-exp->list s)))
           (parse (third (s-exp->list s)))
           (parse (fourth (s-exp->list s))))]
+    [(s-exp-match? `{pair ANY ANY} s)
+     (pairE (parse (second (s-exp->list s)))
+            (parse (third (s-exp->list s))))]
+    [(s-exp-match? `{fst ANY} s)
+     (fstE (parse (second (s-exp->list s))))]
+    [(s-exp-match? `{snd ANY} s)
+     (sndE (parse (second (s-exp->list s))))]
     [(s-exp-match? `{ANY ANY} s)
      (appE (parse (first (s-exp->list s)))
            (parse (second (s-exp->list s))))]
@@ -100,6 +115,9 @@
     (boolT)]
    [(s-exp-match? `(ANY -> ANY) s)
     (arrowT (parse-type (first (s-exp->list s)))
+            (parse-type (third (s-exp->list s))))]
+   [(s-exp-match? `(ANY * ANY) s)
+    (crossT (parse-type (first (s-exp->list s)))
             (parse-type (third (s-exp->list s))))]
    [else (error 'parse-type "invalid input")]))
 
@@ -137,29 +155,37 @@
 
 ;; interp ----------------------------------------
 (define (interp [a : Exp] [env : Env]) : Value
-  (type-case Exp a
-    [(numE n) (numV n)]
-    [(trueE) (trueV)]
-    [(falseE) (falseV)]
-    [(idE s) (lookup s env)]
-    [(plusE l r) (num+ (interp l env) (interp r env))]
-    [(multE l r) (num* (interp l env) (interp r env))]
-    [(lamE n t body)
-     (closV n body env)]
-    [(equalE l r) (if (equal? (interp l env) (interp r env))
-                      (trueV)
-                      (falseV))]
-    [(ifE cnd thn els) (if (equal? (interp cnd env) (trueV))
-                           (interp thn env)
-                           (interp els env))]
-    [(appE fun arg) (type-case Value (interp fun env)
-                      [(closV n body c-env)
-                       (interp body
-                               (extend-env
-                                (bind n
-                                      (interp arg env))
-                                c-env))]
-                      [else (error 'interp "not a function")])]))
+ (type-case Exp a
+   [(numE n) (numV n)]
+   [(trueE) (trueV)]
+   [(falseE) (falseV)]
+   [(idE s) (lookup s env)]
+   [(plusE l r) (num+ (interp l env) (interp r env))]
+   [(multE l r) (num* (interp l env) (interp r env))]
+   [(lamE n t body)
+    (closV n body env)]
+   [(equalE l r) (if (equal? (interp l env) (interp r env))
+                     (trueV)
+                     (falseV))]
+   [(ifE cnd thn els) (if (equal? (interp cnd env) (trueV))
+                          (interp thn env)
+                          (interp els env))]
+   [(pairE fst snd) (pairV (interp fst env) (interp snd env))]
+   [(fstE pair)
+    (local [(define pair-v (interp pair env))]
+      (pairV-fst-v pair-v))]
+   [(sndE pair)
+    (local [(define pair-v (interp pair env))]
+      (pairV-snd-v pair-v))]
+   [(appE fun arg)
+    (type-case Value (interp fun env)
+      [(closV n body c-env)
+       (interp body
+               (extend-env
+                (bind n
+                      (interp arg env))
+                c-env))]
+      [else (error 'interp "not a function")])]))
 
 (module+ test
   (test (interp (parse `2) mt-env)
@@ -214,6 +240,22 @@
                             5})
                 mt-env)
          (numV 5))
+  (test (interp (parse `{pair 10 8})
+                mt-env)
+        (pairV (numV 10) (numV 8)))
+  
+  (test (interp (parse `{fst {pair 10 8}})
+                mt-env)
+        (numV 10))
+  
+  (test (interp (parse `{snd {pair 10 8}})
+                mt-env)
+        (numV 8))
+  
+  (test (interp (parse `{let {[p : (num * num) {pair 10 8}]}
+                          {fst p}})
+                mt-env)
+        (numV 10))
 
   (test/exn (interp (parse `{1 2}) mt-env)
             "not a function")
@@ -285,6 +327,15 @@
                                     tenv)))]
     [(equalE l r) (typecheck-equal l r tenv)]
     [(ifE cnd thn els) (typecheck-if cnd thn els tenv)]
+    [(pairE fst snd) (crossT (typecheck fst tenv) (typecheck snd tenv))]
+    [(fstE pair)
+     (type-case Type (typecheck pair tenv)
+       [(crossT fst-t snd-t) fst-t]
+       [else (type-error pair "pair")])]
+    [(sndE pair)
+     (type-case Type (typecheck pair tenv)
+       [(crossT fst-t snd-t) snd-t]
+       [else (type-error pair "pair")])]
     [(appE fun arg)
      (type-case Type (typecheck fun tenv)
        [(arrowT arg-type result-type)
@@ -314,10 +365,11 @@
 (define (typecheck-if con thn els tenv)
   (type-case Type (typecheck con tenv)
     [(boolT)
-     (type-case Type (typecheck thn tenv)
-       [(numT) (numT)]
-       [(boolT) (boolT)]
-       [(arrowT arg result) (arrowT arg result)])]
+     (local [(define thn-type (typecheck thn tenv))]
+       (if (equal? thn-type
+                   (typecheck els tenv))
+           thn-type
+           (type-error con "matching")))]
     [else (type-error con "boolean")]))
 
 (define (type-error a msg)
@@ -366,9 +418,50 @@
                                {lambda {[x : num]} {+ x 1}}
                                {lambda {[y : num]} y}})
                    mt-env)
-        ;; This result may need to be adjusted after part 3:
         (arrowT (numT) (numT)))
+  (test (typecheck (parse `{pair 10 8})
+                   mt-env)
+        (crossT (numT) (numT)))
   
+  (test (typecheck (parse `{fst {pair 10 8}})
+                   mt-env)
+        (numT))
+  
+  (test (typecheck (parse `{+ 1 {snd {pair 10 8}}})
+                   mt-env)
+        (numT))
+  
+  (test (typecheck (parse `{lambda {[x : (num * bool)]}
+                             {fst x}})
+                   mt-env)
+        (arrowT (crossT (numT) (boolT)) (numT)))
+  
+  (test (typecheck (parse `{{lambda {[x : (num * bool)]}
+                              {fst x}}
+                            {pair 1 false}})
+                   mt-env)
+        (numT))
+  
+  (test (typecheck (parse `{{lambda {[x : (num * bool)]}
+                              {snd x}}
+                            {pair 1 false}})
+                   mt-env)
+        (boolT))
+  
+  (test/exn (typecheck (parse `{fst 10})
+                       mt-env)
+            "no type")
+  
+  (test/exn (typecheck (parse `{+ 1 {fst {pair false 8}}})
+                       mt-env)
+            "no type")
+  
+  (test/exn (typecheck (parse `{lambda {[x : (num * bool)]}
+                                 {if {fst x}
+                                     1
+                                     2}})
+                       mt-env)
+            "no type")
   (test/exn (typecheck (parse `{+ 1 {if true true false}})
                        mt-env)
             "no type")
@@ -381,6 +474,9 @@
   (test/exn (typecheck (parse `{if 1 1 1})
                        mt-env)
             "no type")
+  (test/exn (typecheck (parse `{if true 1 false})
+                       mt-env)
+            "no type")
   (test/exn (typecheck (parse `{1 2})
                        mt-env)
             "no type")
@@ -391,5 +487,11 @@
                        mt-env)
             "no type")
   (test/exn (typecheck (parse `{* {lambda {[x : num]} x} 1})
+                       mt-env)
+            "no type")
+  (test/exn (typecheck (parse `{fst 1})
+                       mt-env)
+            "no type")
+  (test/exn (typecheck (parse `{snd 1})
                        mt-env)
             "no type"))
