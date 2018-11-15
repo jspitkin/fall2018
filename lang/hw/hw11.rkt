@@ -333,11 +333,25 @@
                  fun)
          result-type))]
     [(if0E tst thn els) (typecheck-if tst thn els tenv)]
-    ;; These are all wrong:
-    [(emptyE) (listofT (boolT))]
-    [(consE l r) (listofT (boolT))]
-    [(firstE a) (boolT)]
-    [(restE a) (listofT (boolT))]))
+    [(emptyE) (listofT (varT (box (none))))]
+    [(consE l r) (typecheck-cons l r tenv)]
+    [(firstE a) (typecheck-list a tenv)]
+    [(restE a) (typecheck-list a tenv)]))
+
+(define (typecheck-list a tenv)
+  (local [(define result-type (varT (box (none))))]
+    (begin
+      (unify! (typecheck a tenv)
+              (listofT result-type)
+              a)
+      result-type)))
+
+(define (typecheck-cons l r tenv)
+  (begin
+    (unify! (listofT (typecheck l tenv))
+            (typecheck r tenv)
+            r)
+    (listofT (typecheck l tenv))))
 
 (define (typecheck-nums l r tenv)
   (begin
@@ -430,7 +444,9 @@
                             (unify! b1 b2 expr))]
                          [else (type-error expr t1 t2)])]
        ;; This is wrong:
-       [(listofT e2) (type-error expr t1 t2)])]))
+       [(listofT e2) (type-case Type t1
+                       [(listofT e1) (unify! e1 e2 expr)]
+                       [else (type-error expr t1 t2)])])]))
 
 (define (resolve [t : Type]) : Type
   (type-case Type t
@@ -452,7 +468,7 @@
                      [(none) #f]
                      [(some t2) (occurs? r t2)]))]
     ;; This is wrong:
-    [(listofT e) #f]))
+    [(listofT e) (occurs? r e)]))
 
 (define (type-error [a : Exp] [t1 : Type] [t2 : Type])
   (error 'typecheck (string-append
@@ -567,4 +583,46 @@
                                 {lambda {[x : ?]}
                                  {if0 x x {x 1}}}]}
                         {f 1}})
+            "no type")
+  (test (run-prog `empty)
+        `list)
+  
+  (test (run-prog `{cons 1 empty})
+        `list)
+  (test (run-prog `{cons empty empty})
+        `list)
+  (test/exn (run-prog `{cons 1 {cons empty empty}})
+            "no type")
+  
+  (test/exn (run-prog `{first 1})
+            "no type")
+  (test/exn (run-prog `{rest 1})
+            "no type")
+  
+  (test/exn (run-prog `{first empty})
+            "list is empty")
+  (test/exn (run-prog `{rest empty})
+            "list is empty")
+  
+  (test (run-prog `{let {[f : ?
+                            {lambda {[x : ?]} {first x}}]}
+                     {+ {f {cons 1 empty}} 3}})
+        `4)
+  (test (run-prog `{let {[f : ?
+                            {lambda {[x : ?]} {rest x}}]}
+                     {+ {first {f {cons 1 {cons 2 empty}}}} 3}})
+        `5)
+  (test (run-prog `{let {[f : ?
+                            {lambda {[x : ?]}
+                              {lambda {[y : ?]}
+                                {cons x y}}}]}
+                     {first {rest {{f 1} {cons 2 empty}}}}})
+        `2)
+  
+  (test/exn (run-prog `{lambda {[x : ?]}
+                         {cons x x}})
+            "no type")
+  
+  (test/exn (run-prog `{let {[f : ? {lambda {[x : ?]} x}]}
+                         {cons {f 1} {f empty}}})
             "no type"))
