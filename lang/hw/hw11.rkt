@@ -335,16 +335,24 @@
     [(if0E tst thn els) (typecheck-if tst thn els tenv)]
     [(emptyE) (listofT (varT (box (none))))]
     [(consE l r) (typecheck-cons l r tenv)]
-    [(firstE a) (typecheck-list a tenv)]
-    [(restE a) (typecheck-list a tenv)]))
+    [(firstE a) (typecheck-first a tenv)]
+    [(restE a) (typecheck-rest a tenv)]))
 
-(define (typecheck-list a tenv)
+(define (typecheck-first a tenv)
   (local [(define result-type (varT (box (none))))]
     (begin
       (unify! (typecheck a tenv)
               (listofT result-type)
               a)
       result-type)))
+
+(define (typecheck-rest a tenv)
+  (local [(define result-type (varT (box (none))))]
+    (begin
+      (unify! (typecheck a tenv)
+              (listofT result-type)
+              a)
+      (listofT result-type))))
 
 (define (typecheck-cons l r tenv)
   (begin
@@ -443,7 +451,6 @@
                             (unify! a1 a2 expr)
                             (unify! b1 b2 expr))]
                          [else (type-error expr t1 t2)])]
-       ;; This is wrong:
        [(listofT e2) (type-case Type t1
                        [(listofT e1) (unify! e1 e2 expr)]
                        [else (type-error expr t1 t2)])])]))
@@ -467,7 +474,6 @@
                    (type-case (Optionof Type) (unbox is)
                      [(none) #f]
                      [(some t2) (occurs? r t2)]))]
-    ;; This is wrong:
     [(listofT e) (occurs? r e)]))
 
 (define (type-error [a : Exp] [t1 : Type] [t2 : Type])
