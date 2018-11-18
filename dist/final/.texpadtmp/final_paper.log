@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  18 NOV 2018 10:05
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  18 NOV 2018 11:11
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -808,20 +808,28 @@ LaTeX Font Warning: Font shape `OT1/times/m/sc' undefined
 (Font)              using `OT1/times/m/n' instead on input line 74.
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 80.
+(Font)              <10.95> on input line 81.
 
-Underfull \hbox (badness 10000) in paragraph at lines 79--81
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 79--81
+Underfull \hbox (badness 10000) in paragraph at lines 81--82
 
  []
 
 
-Underfull \hbox (badness 1152) in paragraph at lines 88--89
-[]\OT1/times/bx/n/10.95 NetCache keeps caching sim-ple by never
+Underfull \hbox (badness 10000) in paragraph at lines 81--82
+
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+LaTeX Font Warning: Font shape `OT1/times/m/it' undefined
+(Font)              using `OT1/times/m/n' instead on input line 89.
+
+
+Underfull \hbox (badness 1152) in paragraph at lines 89--90
+[]\OT1/times/m/n/10.95 NetCache keeps caching sim-ple by never
  []
 
 
@@ -831,19 +839,39 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 ]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 130.
- [2pdfTeX warning (ext4): destination with the same identifier (name{cite.B}) has been already used, duplicate ignored
+Underfull \hbox (badness 1472) in paragraph at lines 101--102
+[]\OT1/times/m/n/10.95 Research into us-ing net-work switches as
+ []
+
+
+Underfull \vbox (badness 2173) has occurred while \output is active []
+
+ [2]
+Missing character: There is no Ã in font cmr10!
+Missing character: There is no © in font cmr10!
+
+Underfull \hbox (badness 2384) in paragraph at lines 136--138
+[]\OT1/times/m/it/10.95 NetChain: Scale-Free Sub-RTT Co-or-
+ []
+
+
+Underfull \hbox (badness 1342) in paragraph at lines 136--138
+\OT1/times/m/it/10.95 di-na-tionNSDI2018 Xin JinX-i-aozhou Li-
+ []
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 143.
+[3pdfTeX warning (ext4): destination with the same identifier (name{cite.B}) has been already used, duplicate ignored
 
 \@EveryShipout@Output ...@Org@Shipout \box \@cclv 
                                                   
-l.130 \end{document}
+l.143 \end{document}
                     
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 130.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 143.
  (/Users/jsp/fall2018/dist/final/.texpadtmp/final_paper.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 130.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 130.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 143.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 143.
 Package rerunfilecheck Info: File `final_paper.out' has not changed.
 (rerunfilecheck)             Checksum: <no file>.
 
@@ -855,18 +883,18 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 32872 strings out of 493014
- 721267 string characters out of 6133351
- 792090 words of memory out of 5000000
- 36037 multiletter control sequences out of 15000+600000
+ 32876 strings out of 493014
+ 721296 string characters out of 6133351
+ 793113 words of memory out of 5000000
+ 36039 multiletter control sequences out of 15000+600000
  7590 words of font info for 27 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 61i,9n,69p,10363b,333s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 61i,9n,69p,10363b,425s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on /Users/jsp/fall2018/dist/final/.texpadtmp/final_paper.pdf (2 pages, 58260 bytes).
+Output written on /Users/jsp/fall2018/dist/final/.texpadtmp/final_paper.pdf (3 pages, 62669 bytes).
 PDF statistics:
- 45 PDF objects out of 1000 (max. 8388607)
- 36 compressed objects within 1 object stream
- 10 named destinations out of 1000 (max. 500000)
+ 50 PDF objects out of 1000 (max. 8388607)
+ 40 compressed objects within 1 object stream
+ 12 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 
