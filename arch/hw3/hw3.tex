@@ -338,12 +338,38 @@ Y array \texttt{store} operation hits: 0 \\
 \texttt{store} ratio of total operations: 1/2 \\
 Overall hit rate: 1/2 * 7/8 + 1/2 * 0 = $43.75\%$}}
 
+\newpage
 \item Consider a 4KB fully associative cache architecture with 32-byte blocks. The replacement policy is LRU. Rewrite the code to remove  all of the non-compulsory misses. (You need to ensure the new code generate the exact same output in the main memory.You are allowed to add a nested for loop to the code if necessary.) Please provide explanation on how the new code can remove those misses.\textbf{(15 points)}
 
+The problem with the above code isn't the \texttt{load} operations on the X array as we are achieving optimal spatial locality for blocks of size 8 words. The problem is the \texttt{store} operations on the Y array. We are bringing in 8 words, only using one of them, and then the block gets overwritten before the other 7 are accessed.
+
+One way to resolve this would be to add a third for-loop (as hinted by the problem) and adjusting the indexing into X and Y:
+
+	\begin{algorithm}
+		\textbf{\#define M 1024} \\
+		\textbf{int X[M*M];} \\
+		\textbf{int Y[M*M];} \\
+		\textbf{int k, l;}
+		\begin{algorithmic}	
+			\FOR{$(k = 0; k < M; k = k + 8)$}
+			\FOR{$(l = 0; l < M; l++)$}
+	        \FOR{$(m = 0; m < 8; m++)$}
+			\STATE \texttt{Y[l*M+(k+m)] = X[(k+m)*M+l];}
+			\ENDFOR
+			\ENDFOR
+			\ENDFOR
+		\end{algorithmic}
+	\end{algorithm}
+
+Now we will access Y[a], Y[a+1], .... Y[a+7] sequentially which will allow us to take advantage of spatial locality similar to how we are gaining spatial locality for the array X as explained in part i.
+
+We will no longer be accessing X sequentially as we were in part i. But rather the new m for-loop will bring 8 blocks (of size 8 words) into the cache as it loops 8 times. 
+
+But notice when the m for-loop ends and the l for-loop increments we will be using these same 8 blocks that are already in the cache for the 8 accesses to the X array inside the m for-loop.
+
+As such, for both the X and Y array we will always use all 8 words brought into the cache. The only time we will miss is when we inititally bring new unseen blocks of 8 words into the cache.
 
 \end{enumerate}
-
-
 
 \item \textbf {Cache Addressing.} Consider a processor using 3 cache levels. Level-1 cache is a
 32KB direct mapped cache with 16B blocks used for both instructions and data. Level-2 is a
