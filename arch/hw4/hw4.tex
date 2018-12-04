@@ -38,14 +38,21 @@ bits in the sum of ``Index'' and ``Byte'' (Please see \url{http://www.cs.utah.ed
 You are asked to identify the issues and their corresponding solutions from the literature.
 \textbf{(20 points)}
 
-\textbf { Special Instructions :}
-\begin{enumerate}
-	\item Strictly NO collaboration or brainstorming on this question is accepted.
-	\item Mention ALL references used to answer this question.
-	If no references are mentioned, 0 points will be awarded.
-\end{enumerate}
+\fbox{\parbox{\linewidth}{Let x be the number of page offset bits and y be the number of bits in the sum of "Index" and "Byte". We will consider 3 cases: \\
 
+\textbf{Case x = y:} In this case they are equal, there is no challenge and we can index into the cache in parallel with page number translation by the TLB. This is a side effect of the offset bits being identical in both the virtual and physical addresses. \\
 
+\textbf{Case x $>$ y:} Here we have more page offset bits than required for "Index" and "Byte". We can just use a subset of the page offset bits for "Index" and "Byte" and index into the cache in parallel with page number translation as in case 1. \\
+
+\textbf{Case x $<$ y:} When there are less page offset bits than required for "Index" and "Byte" we can have caching problems. \\
+
+\textbf{References:}
+
+Lecture 18 video: https://web.microsoftstream.com/ \\ video/8d07bb10-4791-4c46-bab8-1b2e2a7e1a09 \\
+
+Lecture 18 slides: http://www.cs.utah.edu/~bojnordi/classes/6810/f18/slides/18-tlb.pdf \\
+
+Wikipedia: https://en.wikipedia.org/wiki/Cache\_coloring}}
 
 \item \textbf {Virtual Memory and TLB.}
 Consider an operating system (OS) using 1KB pages for mapping virtual to physical addresses.
@@ -57,16 +64,20 @@ The TLB can store up 16 entries.
 \begin{enumerate}
 	\item Assuming that the main memory size is 1MB and the page table has 2048 entries, show the number of required bits for the physical and virtual address fields. \textbf{(5 points)}
 	
-	Given 1KB pages, both the physical and virtual address fields will require 10 offset bits. The page table has 2048 entries which will require 11 bits to address. Main memory is 1MB with 1KB pages, so it contains 1024 pages which will require 10 bits to address.
+	1KB pages = $2^{10}$ = 10 offset bits to index \\
+	2048 page table entries = $2^{11}$ =  11 bits to address \\
+	1MB main memory with 1KB pages = $2^{20} / 2^{10}$ = 10 bits to address
 	
-	\fbox{Virtual address = Virtual Page No + offset = 11 + 10 = 21 bits}
-	
-	\fbox{Physical address = Page frame No + offset = 10 + 10 = 20 bits}
+	\fbox{\parbox{\linewidth}{
+	Virtual address = Virtual Page No + offset = 11 + 10 = 21 bits \\
+	Physical address = Page frame No + offset = 10 + 10 = 20 bits}}
 	\item Assume that the user application only generates five memory requests to the virtual addresses \texttt{0000}, \texttt{0004}, \texttt{0008}, \texttt{0800}, and \texttt{0804} (all in hexadecimal);
 	the first request is ready at time 0; and
 	the processor generates every next request immediately after serving the current one.
 	Please find the execution time with and without using TLB in the proposed system and compute the attainable speedup due to using TLB.
 	\textbf{(15 points)}
+	
+	\fbox{\parbox{\linewidth}{Answer}}
 \end{enumerate}
 
 
@@ -95,6 +106,8 @@ Using the following address mapping scheme, show all the required commands issue
 		\hline
 	\end{tabular}
 \end{center}
+
+\fbox{\parbox{\linewidth}{Answer}}
 
 \item \textbf{DRAM Row (Page) Management.}
 A computer system includes DRAM and CPU.
@@ -135,6 +148,8 @@ Discuss which policy performs better for the given example.
 	\end{center}
 \end{figure}
 
+\fbox{\parbox{\linewidth}{Answer}}
+
 \item \textbf{Data TLB.}
 Consider the following  pseudo code, in which \textbf{X} and \textbf{Y} are allocated as contiguous integer arrays in memory and are aligned to the 4KB boundaries.
 Assume that \textbf{k} and \textbf{l} are allocated in the register file with no need for memory accesses.
@@ -155,7 +170,8 @@ Find the hit rate of the D-TLB when running the code.
 		\ENDFOR
 		\ENDFOR
 	\end{algorithmic}
-\end{algorithm}
+\end{algorithm}
+\fbox{\parbox{\linewidth}{Answer}}
 
 \end{enumerate}
 \end{document}
