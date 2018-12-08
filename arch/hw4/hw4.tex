@@ -87,7 +87,45 @@ The TLB can store up 16 entries.
 	Please find the execution time with and without using TLB in the proposed system and compute the attainable speedup due to using TLB.
 	\textbf{(15 points)}
 	
-	\fbox{\parbox{\linewidth}{Answer}}
+	\textbf{Assumptions:} There is no mention of caching the words once they have been accessed. I will assume that once the virtual address has been translated to a physical address we will always have to access memory to get the data (as there is no caching). I'll also assume searching the page table takes negligible time as it's not mentioned in the problem. \\
+	
+	\textbf{Without a TLB:} every access will have to read the page table in main memory and the data in main memory as there is no caching: \\
+	
+	\begin{center}
+	\begin{tabular}{ |c|c|c|c| } 
+		\hline
+		\textbf{Virtual Address}& \textbf{Virtual Page No} & \textbf{Offset} & \textbf{Access Cycles} \\ 
+		\hline
+		0000 & 0 & 0 & 400\\ \hline
+		0004 & 0 & 8 & 400 \\ \hline
+		0008 & 0 & 16 & 400 \\ \hline
+		0800 & 2 & 0 & 400\\ \hline
+		0804 & 2& 8 & 400 \\ \hline
+	\end{tabular}
+	\end{center}
+	
+	\fbox{2,000 cycles with no TLB}
+
+	\textbf{With a TLB:} every access will still have to read main memory for the data as there is no caching, but we can cache address translations in the TLB:
+	
+	\begin{center}
+	\begin{tabular}{ |c|c|c|c| } 
+		\hline
+		\textbf{Virtual Address}& \textbf{Virtual Page No} & \textbf{Offset} & \textbf{Access Cycles} \\ 
+		\hline
+		0000 & 0 & 0 & 400\\ \hline
+		0004 & 0 & 8 & 201 \\ \hline
+		0008 & 0 & 16 & 201 \\ \hline
+		0800 & 2 & 0 & 400\\ \hline
+		0804 & 2& 8 & 201 \\ \hline
+	\end{tabular}
+	\end{center}
+	
+	\fbox{1,403 cycles with a TLB}
+	
+	\textbf{Speedup:} to calculate speedup we compare the ratio of access cycles for not using a TLB and using a TLB:
+	
+	\fbox{old time / new time = 2,000 / 1,403 = 1.4255 or a 42.55\% speedup}
 \end{enumerate}
 
 
