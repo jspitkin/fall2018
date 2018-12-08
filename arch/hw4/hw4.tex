@@ -38,13 +38,21 @@ bits in the sum of ``Index'' and ``Byte'' (Please see \url{http://www.cs.utah.ed
 You are asked to identify the issues and their corresponding solutions from the literature.
 \textbf{(20 points)}
 
-\fbox{\parbox{\linewidth}{Let x be the number of page offset bits and y be the number of bits in the sum of "Index" and "Byte". We will consider 3 cases: \\
+Let x be the number of page offset bits and y be the number of bits in the sum of "Index" and "Byte". We will consider 3 cases: \\
 
-\textbf{Case x = y:} In this case they are equal, there is no challenge and we can index into the cache in parallel with page number translation by the TLB. This is a side effect of the offset bits being identical in both the virtual and physical addresses. \\
+\textbf{Case x = y:} In this case they are equal, there is no challenge and we can index into the cache in parallel with page number translation by the TLB. This is a side effect of the page offset bits being identical in both the virtual and physical addresses so waiting for the TLB to execute won't change the bits used for "Index" and "Byte". \\
 
-\textbf{Case x $>$ y:} Here we have more page offset bits than required for "Index" and "Byte". We can just use a subset of the page offset bits for "Index" and "Byte" and index into the cache in parallel with page number translation as in case 1. \\
+\textbf{Case x $>$ y:} Here we have more page offset bits than required for "Index" and "Byte". We can just use a subset of the page offset bits for "Index" and "Byte" and this is fine for the same reasons as in case 1. \\
 
-\textbf{Case x $<$ y:} When there are less page offset bits than required for "Index" and "Byte" we can have caching problems. \\
+\textbf{Case x $<$ y:} When there are less page offset bits than required for "Index" and "Byte" an issue arises. As discussed in the lecture, in this case part of the "Index" bits will come from the virtual address. This means the index into cache will be dependent on the virtual address. Two different virtual addresses could be mapped to a single physical address. As such, it's possible for a given physical word to be put into the cache in more than one location. \\
+
+From the wikipedia on CPU caches, this is called aliasing. This is an issue as we now have cache coherence problems inside a single cache. Processors are designed to satisfy cache coherence under the assumption a given cache only contains a physical word once. There is also the issue of contiguous pages in virtual memory not always being contiguous in physical memory. Using the virtual address for caching could lead to poor performance as we overwrite contiguous pages in physical memory.\\
+
+To solve this issue we must guarantee any given physical word doesn't exist in a cache in more than one location. But we still want to use the virtual address for some of the "Index" bits as it allows us to run the two streams of execution as described in the lecture. As hinted in lecture the solution is cache coloring.\\
+
+From the wikipedia on cache coloring, it is the process of attempting to allocate free pages that are contiguous from the CPU cache's point of view. That is, normally a physically index CPU aims to place contiguous pages in physical memory in different positions in the cache. But with page coloring: \textit{Physical memory pages are "colored" so that pages with different "colors" have different positions in CPU cache memory. When allocating sequential pages in virtual memory for processes, the kernel collects pages with different "colors" and maps them to the virtual memory. In this way, sequential pages in virtual memory do not contend for the same cache line} (from the wikipedia on cache coloring). \\
+
+This solves our performance problem as sequential pages in virtual memory do not content for the same cache line. When using some of the virtual address bits for "Index" we use the lower bits. As such, contiguous pages in virtual memory will be assigned different positions in the cache. Additionally this solves the problem of aliasing. If two virtual addresses map to the same physical address, they will be assigned to the same line in the cache (as the physical address with have a given color) and we won't have duplicate entries and cache coherence problems.
 
 \textbf{References:}
 
@@ -52,7 +60,9 @@ Lecture 18 video: https://web.microsoftstream.com/ \\ video/8d07bb10-4791-4c46-b
 
 Lecture 18 slides: http://www.cs.utah.edu/~bojnordi/classes/6810/f18/slides/18-tlb.pdf \\
 
-Wikipedia: https://en.wikipedia.org/wiki/Cache\_coloring}}
+Wikipedia on caches: https://en.wikipedia.org/wiki/CPU\_cache \\
+
+Wikipedia on cache coloring: https://en.wikipedia.org/wiki/Cache\_coloring
 
 \item \textbf {Virtual Memory and TLB.}
 Consider an operating system (OS) using 1KB pages for mapping virtual to physical addresses.
@@ -107,7 +117,20 @@ Using the following address mapping scheme, show all the required commands issue
 	\end{tabular}
 \end{center}
 
-\fbox{\parbox{\linewidth}{Answer}}
+\fbox{\parbox{\linewidth}{\begin{center}
+	\begin{tabular}{ |c|c| } 
+		\hline
+		\textbf{Physical Address}& \textbf{Commands}\\ 
+		\hline
+		\texttt{00040108} & \\ \hline
+		\texttt{01040101} & \\ \hline
+		\texttt{FF042864} & \\ \hline
+		\texttt{A5181234} & \\ \hline
+		\texttt{A5184321} & \\ \hline
+		\texttt{00161804} & \\ \hline
+		\texttt{01040104} & \\ \hline
+	\end{tabular}
+\end{center}}}
 
 \item \textbf{DRAM Row (Page) Management.}
 A computer system includes DRAM and CPU.
