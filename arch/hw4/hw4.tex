@@ -173,36 +173,39 @@ First I will calculate the row, bank, rank, and column from each physical addres
 	\end{tabular}
 \end{center}
 
-\fbox{\parbox{\linewidth}{\begin{center}
+\fbox{\parbox{\linewidth}{
+Physical addresses are written in hex where the arguments for commands are in decimal. I am using the command representation presented in lecture 22 (RD commands).
+
+\begin{center}
 	\begin{tabular}{ |c|c| } 
 		\hline
 		\textbf{Physical Address}& \textbf{Commands}\\ 
 		\hline
-		\texttt{00040108} & Activate, RAS, CAS\\ \hline
-		\texttt{01040101} & Precharge, Activate, RAS, CAS\\ \hline
-		\texttt{FF042864} & Precharge, Activate, RAS, CAS\\ \hline
-		\texttt{A5181234} & Activate, RAS, CAS\\ \hline
-		\texttt{A5184321} & CAS\\ \hline
-		\texttt{00161804} & Activate, RAS, CAS\\ \hline
-		\texttt{01040104} & Precharge, Activate, RAS, CAS\\ \hline
+		\texttt{00040108} & ACT(0), RD(264)\\ \hline
+		\texttt{01040101} & PRE, ACT(4), RD(257)\\ \hline
+		\texttt{FF042864} & PRE, ACT(1020), RD(10340)\\ \hline
+		\texttt{A5181234} & ACT(660), RD(4660)\\ \hline
+		\texttt{A5184321} & RD(17185)\\ \hline
+		\texttt{00161804} & ACT(0), RD(6148)\\ \hline
+		\texttt{01040104} & PRE, ACT(0), RD(260)\\ \hline
 	\end{tabular}
 \end{center}
 
 \textbf{Explanations:}\\
 
-\textit{Access 00040108:} Bank 1 is already precharged so first we must Activate the row then perform a Row Access Strobe (RAS) to load the Row Buffer (RB) and finally a Column Access Strobe (CAS) to read the RB. \\
+\textit{Access 00040108:} Bank 1 is already precharged so first we must activate row 0 and then read column 264. \\
 
-\textit{Access 01040101:} The RB in bank 1 is not empty but this access is a miss. So we must prepare the RB with a Precharage. Followed by activating row 4, a RAS to load the RB and a CAS to read the RB. \\
+\textit{Access 01040101:} The row buffer in bank 1 is not empty but this access is a miss. So we must prepare the row buffer with a precharage. Followed by activating row 4, and reading column 257 from the row buffer. \\
 
-\textit{Access FF042864:} The RB in bank 1 is not empty but this access is a miss. So we must prepare the RB with a Precharage. Followed by activating row 1020, a RAS to load the RB and a CAS to read the RB. \\
+\textit{Access FF042864:} The row buffer in bank 1 is not empty but this access is a miss. So we must prepare the row buffer with a precharage. Followed by activating row 1020, and reading column 10340 from the row buffer. \\
 
-\textit{Access A5181234:} Bank 6 is already precharged and the RB is empty so we Activate row 660, read it into the RB with a RAS and a CAS to read the RB. \\
+\textit{Access A5181234:} Bank 6 is already precharged and the row buffer is empty so we activate row 660, and read column 4660 from the row buffer. \\
 
-\textit{Access A5184321:} Bank 6 RB already contains row 660 so we just need to read the RB with a CAS. \\
+\textit{Access A5184321:} The bank 6 row buffer already contains row 660 so we just need to read column 17185 from the row buffer. \\
 
-\textit{Access 00161804:} Bank 5 is already precharged and the RB is empty so we Activate row 0, read it into the RB with a RAS and a CAS to read the RB. \\
+\textit{Access 00161804:} Bank 5 is already precharged and the row buffer is empty so we activate row 0, and read column 6148 from the row buffer. \\
 
-\textit{Access 01040104:} The RB in bank 1 is not empty but this access is a miss. So we must prepare the RB with a Precharage. Followed by activating row 4, a RAS to load the RB and a CAS to read the RB.
+\textit{Access 01040104:} The row buffer in bank 1 is not empty but this access is a miss. So we must prepare the row buffer with a precharage. Followed by activating row 4, and reading column 260 from the row buffer.
 }}
 
 \item \textbf{DRAM Row (Page) Management.}
