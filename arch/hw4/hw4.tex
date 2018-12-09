@@ -155,20 +155,55 @@ Using the following address mapping scheme, show all the required commands issue
 	\end{tabular}
 \end{center}
 
+First I will calculate the row, bank, rank, and column from each physical address:
+
+
+\begin{center}
+	\begin{tabular}{ |c|c|c|c|c| } 
+		\hline
+		\textbf{Physical Address} & \textbf{row} & \textbf{bank} & \textbf{rank} & \textbf{column}\\ 
+		\hline
+		\texttt{00040108}  & 0 & 1 & 0 & 264 \\ \hline
+		\texttt{01040101}  & 4 & 1 & 0 & 257\\ \hline
+		\texttt{FF042864}  & 1020 & 1 & 0 & 10340\\ \hline
+		\texttt{A5181234}  & 660 & 6 & 0 & 4660 \\ \hline
+		\texttt{A5184321}  & 660 & 6 & 0 & 17185 \\ \hline
+		\texttt{00161804}  & 0 & 5 & 2 & 6148 \\ \hline
+		\texttt{01040104}  & 0 & 1 & 0 & 260\\ \hline
+	\end{tabular}
+\end{center}
+
 \fbox{\parbox{\linewidth}{\begin{center}
 	\begin{tabular}{ |c|c| } 
 		\hline
 		\textbf{Physical Address}& \textbf{Commands}\\ 
 		\hline
-		\texttt{00040108} & \\ \hline
-		\texttt{01040101} & \\ \hline
-		\texttt{FF042864} & \\ \hline
-		\texttt{A5181234} & \\ \hline
-		\texttt{A5184321} & \\ \hline
-		\texttt{00161804} & \\ \hline
-		\texttt{01040104} & \\ \hline
+		\texttt{00040108} & Activate, RAS, CAS\\ \hline
+		\texttt{01040101} & Precharge, Activate, RAS, CAS\\ \hline
+		\texttt{FF042864} & Precharge, Activate, RAS, CAS\\ \hline
+		\texttt{A5181234} & Activate, RAS, CAS\\ \hline
+		\texttt{A5184321} & CAS\\ \hline
+		\texttt{00161804} & Activate, RAS, CAS\\ \hline
+		\texttt{01040104} & Precharge, Activate, RAS, CAS\\ \hline
 	\end{tabular}
-\end{center}}}
+\end{center}
+
+\textbf{Explanations:}\\
+
+\textit{Access 00040108:} Bank 1 is already precharged so first we must Activate the row then perform a Row Access Strobe (RAS) to load the Row Buffer (RB) and finally a Column Access Strobe (CAS) to read the RB. \\
+
+\textit{Access 01040101:} The RB in bank 1 is not empty but this access is a miss. So we must prepare the RB with a Precharage. Followed by activating row 4, a RAS to load the RB and a CAS to read the RB. \\
+
+\textit{Access FF042864:} The RB in bank 1 is not empty but this access is a miss. So we must prepare the RB with a Precharage. Followed by activating row 1020, a RAS to load the RB and a CAS to read the RB. \\
+
+\textit{Access A5181234:} Bank 6 is already precharged and the RB is empty so we Activate row 660, read it into the RB with a RAS and a CAS to read the RB. \\
+
+\textit{Access A5184321:} Bank 6 RB already contains row 660 so we just need to read the RB with a CAS. \\
+
+\textit{Access 00161804:} Bank 5 is already precharged and the RB is empty so we Activate row 0, read it into the RB with a RAS and a CAS to read the RB. \\
+
+\textit{Access 01040104:} The RB in bank 1 is not empty but this access is a miss. So we must prepare the RB with a Precharage. Followed by activating row 4, a RAS to load the RB and a CAS to read the RB.
+}}
 
 \item \textbf{DRAM Row (Page) Management.}
 A computer system includes DRAM and CPU.
@@ -218,6 +253,7 @@ We execute the code on a machine with virtual memory where the integer type (\te
 Assume that the system include a direct-mapped D-TLB with 1024 entries for serving all data accesses only.
 Initially, the D-TLB is empty.
 Find the hit rate of the D-TLB when running the code.
+
 \textbf{(20 points)}
 \begin{algorithm}
 	\textbf{\#define M 1024} \\
