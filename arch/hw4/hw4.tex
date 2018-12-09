@@ -271,7 +271,60 @@ Find the hit rate of the D-TLB when running the code.
 		\ENDFOR
 	\end{algorithmic}
 \end{algorithm}
-\fbox{\parbox{\linewidth}{Answer}}
+
+\textbf{Virtual memory and TLB indexing} \\
+
+We are using 4KB pages and 4 byte integers. The arrays are aligned to the 4KB boundary and each contain $2^{20}$ integers. Therefore each array is $4* 2^{20} = 2^{22}$ bytes long or 4,096KB. So we have 1,024 4KB pages for each array X and Y (in that order). \\
+
+We will assume virtual memory only contains the 2,048 pages for X and Y and the page table has an entry for each. This requires 11 bits in the virtual address to index the page table. Our pages are 4KB so this requires 12 offset bits. We will assume the 11 virtual page number bits are the higher bits and the 12 offset bits are the lower bits. Giving a 23 bit virtual address.
+
+\begin{center}
+	\begin{tabular}{|c|c|}
+		\hline
+		Virtual Page Number 11 bits & Page Offset 12 bits\\
+		\hline
+	\end{tabular}
+\end{center}
+
+The direct mapped TLB contains 1,024 entries which requires 10 bits to index. I will assume we are using the lower 10 bits of the 11 virtual page number bits to index the TLB. The remaining bit will be a tag bit and we will still have 12 offset bits:
+
+\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Tag 1 bit & TLB Index 10 bits & Page Offset 12 bits\\
+		\hline
+	\end{tabular}
+\end{center}
+
+An observation we can make is for some given index $i$, the address translation for $X[i]$ and $Y[i]$ will exist in the same row of the direct mapped TLB (with different tag bits). This is due to them being sequential in virtual memory and being conveniently sized and aligned. \\
+
+\textbf{Access pattern of the code} \\
+
+Now we can consider the access pattern of the virtual memory addresses. Given the arrangement of the code we will be accessing X and then Y (in that order) each iteration of the nested for-loops. \\
+
+Given \texttt{X[k*M+l]} and the arrangement of the for-loops, each access to X will be sequential in memory (X[0], X[1], X[2], .... X[1,048,575]). \\
+
+Given \texttt{Y[l*M+k]}, accesses to Y will not be sequential in memory (Y[0], Y[1,024], Y[2,048], ... Y[1,047,552], Y[1], Y[1,025], Y[2,049] ... Y[1,047,553], ...) but rather make 1,024 size hops until the end of the array is reached, increase by 1, and repeat 1,024 times. \\
+
+\textbf{Hit rate of the D-TLB} \\
+
+Let's just consider the first iteration of the inside for-loop. There will be 1,024 accesses to X that are sequential in memory X[0] - X[1023]. This will be a 4KB span of memory accesses as we are using 4 byte ints. So these accesses will only use one virtual page and one entry in the TLB (index 0 for the first iteration). \\
+
+For the first iteration of the inside for-loop we will have memory accesses for Y as well. We will access Y[0], Y[1,024], Y[2,048], ..., Y[1,047,552]. These accesses will map to TLB indices 0, 1, ..., 1023 respectively.\\
+
+The first iteration we will miss on X[0] (TLB index 0), miss on Y[0] (TLB index 0) and overwrite the TLB entry for X[0] (TLB index 0). The second iteration we will miss on X[1] (TLB index 0) and miss on Y[1,024] (TLB index 1). For the other 1,022 iterations we will hit on X[2]-X[1023] (TLB index 0) and Y will miss on every translation (TLB index 2 - 1023). Resulting in two misses for X and 1024 misses for Y. \\
+
+Now the TLB contains translations for most of Y (TLB index 1 - 1023). Each iteration of the outside for-loop X will overwrite one of those entries (TLB entry $k$ from the outside for-loop), Y will overwrite TLB entry $k$ once on iteration $l$ from the inside for-loop, and then X will restore it. Resulting in two misses for X and one miss for Y (TLB index $l$ from the inside for-loop and the entry X is currently using). \\
+
+\fbox{\parbox{\linewidth}{First inside for-loop iteration X TLB hit rate: 1022/1024 \\
+First inside for-loop iteration Y TLB hit rate: 0/1024 \\
+
+Rest of inside for-loop iterations X TLB hit rate: 1022/1024 \\
+Rest of inside for-loop iterations Y TLB hit rate: 1023/1024 \\
+
+Address translations: 2 * 1024 * 1024 = 2,097,152 \\
+Hits: 1 * (1022 + 0) + 1023 * (1022 + 1023) = 2,093,057 \\
+Overall hit rate: $\frac{hits}{translations} = \frac{2,093,057}{2,097,152} = 0.99804 = 99.8\%$}}
 
 \end{enumerate}
 \end{document}
