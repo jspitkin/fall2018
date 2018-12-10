@@ -241,35 +241,8 @@ Show all the necessary transactions on the command, address, and data buses for 
 Discuss which policy performs better for the given example.
 (Note: you are allowed to reorder requests already waiting in the memory controller.)
 \textbf{(20 points)}
-\begin{figure}[h!]
-	\begin{center}
-		\epsfig{file=timing.pdf, width = \columnwidth}
-	\end{center}
-\end{figure}
 
-First I will reorder the requests by swapping the 3rd and 4th request:
-
-\begin{center}
-	\begin{tabular}{|c|c|}
-		\hline
-		\textbf{Accessed Row} & \textbf{Arrival time ($ns$)} \\
-		\hline
-		\texttt{X}  & 10 \\
-		\hline
-		\texttt{X}  & 70 \\
-		\hline
-		\texttt{X}  & 85 \\
-		\hline
-		\texttt{Y}  & 80 \\
-		\hline
-		\texttt{Y}  & 110 \\
-		\hline
-		\texttt{X} & 210 \\
-		\hline
-	\end{tabular}
-\end{center}
-
-\textbf{Open-page policy:}
+\textbf{Open-page policy:} First reordering the requests by swapping the 3rd and 4th request.
 
 \begin{center}
 	\begin{tabular}{|c|c|c|}
@@ -278,27 +251,69 @@ First I will reorder the requests by swapping the 3rd and 4th request:
 		\hline
 		\texttt{X}  & 10 & 30\\
 		\hline
-		\texttt{X}  & 70 & \\
+		\texttt{X}  & 70 & 77\\
 		\hline
-		\texttt{X}  & 85 &\\
+		\texttt{X}  & 85 & 92\\
 		\hline
-		\texttt{Y}  & 80 &\\
+		\texttt{Y}  & 80 & 132\\
 		\hline
-		\texttt{Y}  & 110 &\\
+		\texttt{Y}  & 110 & 139\\
 		\hline
-		\texttt{X} & 210 &\\
+		\texttt{X} & 210 & 179\\
 		\hline
 	\end{tabular}
 \end{center}
 
 \begin{center}
-	\begin{tabular}{|c|c|c|c|c}}
+	\begin{tabular}{|c|c|c|c|c|}
 		\hline
-		\textbf{Cmd} & \textbf{Addr} & \textbf{Data} & \textbf{Time Start} & \textbf{Notes} \\
+		\textbf{Cmd} & \textbf{Addr} & \textbf{Data} & \textbf{Time} & \textbf{Active Timings}\\
 		\hline
-		Act & X & - & 10 & 1\\ 
+		Act & X & - & 10 & $t_{RCD}$, $t_{RAS}$\\ 
 		\hline
-		Rd & Col for request 1 & - & 20 &  1\\ 
+		Rd & col for request 1 & - & 20 &  $t_{RAS}$, $t_{CAS}$\\
+		\hline
+		- & - & request 1 data & 23 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 30 & (request 1 done)\\
+		\hline
+		Rd & col for request 2 & - & 70 & $t_{CAS}$ \\
+		\hline
+		- & - & request 2 data & 73 & $t_{BURST}$ \\
+		\hline
+		- & - & - & 77 & (request 2 done) \\
+		\hline
+		Rd & col for request 3 & - & 85 & $t_{CAS}$ \\
+		\hline
+		- & - & request 3 data & 88 & $t_{BURST}$ \\
+		\hline
+		- & - & - & 92 & (request 3 done) \\
+		\hline
+		Pr & - & - & 92 & $t_{RP}$ \\
+		\hline
+		Act & Y & - & 112 & $t_{RCD}$, $t_{RAS}$ \\
+		\hline
+		Rd & col for request 4 & - & 122 & $t_{RAS}$, $t_{CAS}$ \\
+		\hline
+		- & - & request 4 data & 125 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 132 & (request 4 done) \\
+		\hline
+		Rd & col for request 5 & - & 132 & $t_{CAS}$ \\
+		\hline
+		- & - & request 5 data & 135 & $t_{BURST}$ \\
+		\hline
+		- & - & - & 139 & (request 5 done) \\
+		\hline
+		Pr & - & - & 139 & $t_{PR}$ \\
+		\hline
+		Act & X & - & 159 & $t_{RCD}$, $t_{RAS}$ \\
+		\hline
+		Rd & col for request 6 & - & 169 & $t_{RAS}$, $t_{CAS}$ \\
+		\hline
+		- & - & request 6 data & 172 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 179 & (request 6 done) \\
 		\hline
 	\end{tabular}
 \end{center}
