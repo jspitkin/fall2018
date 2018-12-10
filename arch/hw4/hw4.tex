@@ -247,7 +247,63 @@ Discuss which policy performs better for the given example.
 	\end{center}
 \end{figure}
 
-\fbox{\parbox{\linewidth}{Answer}}
+First I will reorder the requests by swapping the 3rd and 4th request:
+
+\begin{center}
+	\begin{tabular}{|c|c|}
+		\hline
+		\textbf{Accessed Row} & \textbf{Arrival time ($ns$)} \\
+		\hline
+		\texttt{X}  & 10 \\
+		\hline
+		\texttt{X}  & 70 \\
+		\hline
+		\texttt{X}  & 85 \\
+		\hline
+		\texttt{Y}  & 80 \\
+		\hline
+		\texttt{Y}  & 110 \\
+		\hline
+		\texttt{X} & 210 \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\textbf{Open-page policy:}
+
+\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		\textbf{Accessed Row} & \textbf{Arrival time ($ns$)} & \textbf{Complete time ($ns$)} \\
+		\hline
+		\texttt{X}  & 10 & 30\\
+		\hline
+		\texttt{X}  & 70 & \\
+		\hline
+		\texttt{X}  & 85 &\\
+		\hline
+		\texttt{Y}  & 80 &\\
+		\hline
+		\texttt{Y}  & 110 &\\
+		\hline
+		\texttt{X} & 210 &\\
+		\hline
+	\end{tabular}
+\end{center}
+
+\begin{center}
+	\begin{tabular}{|c|c|c|c|c}}
+		\hline
+		\textbf{Cmd} & \textbf{Addr} & \textbf{Data} & \textbf{Time Start} & \textbf{Notes} \\
+		\hline
+		Act & X & - & 10 & 1\\ 
+		\hline
+		Rd & Col for request 1 & - & 20 &  1\\ 
+		\hline
+	\end{tabular}
+\end{center}
+
+\textbf{Closed-page policy:}
 
 \item \textbf{Data TLB.}
 Consider the following  pseudo code, in which \textbf{X} and \textbf{Y} are allocated as contiguous integer arrays in memory and are aligned to the 4KB boundaries.
@@ -314,17 +370,17 @@ For the first iteration of the inside for-loop we will have memory accesses for 
 
 The first iteration we will miss on X[0] (TLB index 0), miss on Y[0] (TLB index 0) and overwrite the TLB entry for X[0] (TLB index 0). The second iteration we will miss on X[1] (TLB index 0) and miss on Y[1,024] (TLB index 1). For the other 1,022 iterations we will hit on X[2]-X[1023] (TLB index 0) and Y will miss on every translation (TLB index 2 - 1023). Resulting in two misses for X and 1024 misses for Y. \\
 
-Now the TLB contains translations for most of Y (TLB index 1 - 1023). Each iteration of the outside for-loop X will overwrite one of those entries (TLB entry $k$ from the outside for-loop), Y will overwrite TLB entry $k$ once on iteration $l$ from the inside for-loop, and then X will restore it. Resulting in two misses for X and one miss for Y (TLB index $l$ from the inside for-loop and the entry X is currently using). \\
+Now the TLB contains translations for most of Y (TLB index 1 - 1023). Each iteration of the outside for-loop X will overwrite one of those entries (TLB entry $k$ from the outside for-loop), Y will overwrite TLB entry $k$ once and then X will restore it (similar to as described in the first iteration). Resulting in two misses for X and two misses for Y (TLB index $k$ from the previous and current iteration of the outside for-loop). \\
 
 \fbox{\parbox{\linewidth}{First inside for-loop iteration X TLB hit rate: 1022/1024 \\
 First inside for-loop iteration Y TLB hit rate: 0/1024 \\
 
 Rest of inside for-loop iterations X TLB hit rate: 1022/1024 \\
-Rest of inside for-loop iterations Y TLB hit rate: 1023/1024 \\
+Rest of inside for-loop iterations Y TLB hit rate: 1022/1024 \\
 
 Address translations: 2 * 1024 * 1024 = 2,097,152 \\
-Hits: 1 * (1022 + 0) + 1023 * (1022 + 1023) = 2,093,057 \\
-Overall hit rate: $\frac{hits}{translations} = \frac{2,093,057}{2,097,152} = 0.99804 = 99.8\%$}}
+Hits: 1 * (1022 + 0) + 1023 * (1022 + 1022) = 2,092,034 \\
+Overall hit rate: $\frac{hits}{translations} = \frac{2,092,034}{2,097,152} = 0.9976 = 99.76\%$}}
 
 \end{enumerate}
 \end{document}
