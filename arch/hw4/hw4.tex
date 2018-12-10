@@ -259,7 +259,7 @@ Discuss which policy performs better for the given example.
 		\hline
 		\texttt{Y}  & 110 & 139\\
 		\hline
-		\texttt{X} & 210 & 179\\
+		\texttt{X} & 210 & 250\\
 		\hline
 	\end{tabular}
 \end{center}
@@ -305,20 +305,101 @@ Discuss which policy performs better for the given example.
 		\hline
 		- & - & - & 139 & (request 5 done) \\
 		\hline
-		Pr & - & - & 139 & $t_{PR}$ \\
+		Pr & - & - & 210 & $t_{PR}$ \\
 		\hline
-		Act & X & - & 159 & $t_{RCD}$, $t_{RAS}$ \\
+		Act & X & - & 230 & $t_{RCD}$, $t_{RAS}$ \\
 		\hline
-		Rd & col for request 6 & - & 169 & $t_{RAS}$, $t_{CAS}$ \\
+		Rd & col for request 6 & - & 240 & $t_{RAS}$, $t_{CAS}$ \\
 		\hline
-		- & - & request 6 data & 172 & $t_{RAS}$ \\
+		- & - & request 6 data & 243 & $t_{RAS}$ \\
 		\hline
-		- & - & - & 179 & (request 6 done) \\
+		- & - & - & 250 & (request 6 done) \\
 		\hline
 	\end{tabular}
 \end{center}
 
-\textbf{Closed-page policy:}
+\textbf{Closed-page policy:} For this policy, no swapping of request order.
+
+\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		\textbf{Accessed Row} & \textbf{Arrival time ($ns$)} & \textbf{Complete time ($ns$)} \\
+		\hline
+		\texttt{X}  & 10 & 30\\
+		\hline
+		\texttt{X}  & 70 & 90\\
+		\hline
+		\texttt{Y}  & 80 & 100\\
+		\hline
+		\texttt{X}  & 85 & 120\\
+		\hline
+		\texttt{Y}  & 110 & 140\\
+		\hline
+		\texttt{X} & 210 & 230\\
+		\hline
+	\end{tabular}
+\end{center}
+
+\begin{center}
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		\textbf{Cmd} & \textbf{Addr} & \textbf{Data} & \textbf{Time} & \textbf{Active Timings}\\
+		\hline
+		Act & X & - & 10 & $t_{RCD}$, $t_{RAS}$\\ 
+		\hline
+		Rd & col for request 1 & - & 20 &  $t_{RAS}$, $t_{CAS}$\\
+		\hline
+		- & - & request 1 data & 23 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 30 & (request 1 done)\\
+		\hline
+		Act & X & - & 70 & $t_{RCD}$, $t_{RAS}$\\ 
+		\hline
+		Rd & col for request 2 & - & 80 &  $t_{RAS}$, $t_{CAS}$\\
+		\hline
+		- & - & request 1 data & 83 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 90 & (request 2 done)\\
+		\hline
+		Act & Y & - & 80 & $t_{RCD}$, $t_{RAS}$\\ 
+		\hline
+		Rd & col for request 3 & - & 90 &  $t_{RAS}$, $t_{CAS}$\\
+		\hline
+		- & - & request 3 data & 93 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 100 & (request 3 done)\\
+		\hline
+		Act & X & - & 100 & $t_{RCD}$, $t_{RAS}$\\ 
+		\hline
+		Rd & col for request 4 & - & 110 &  $t_{RAS}$, $t_{CAS}$\\
+		\hline
+		- & - & request 4 data & 113 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 120 & (request 4 done)\\
+		\hline
+		Act & Y & - & 120 & $t_{RCD}$, $t_{RAS}$\\ 
+		\hline
+		Rd & col for request 5 & - & 130 &  $t_{RAS}$, $t_{CAS}$\\
+		\hline
+		- & - & request 5 data & 133 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 140 & (request 5 done)\\
+		\hline
+		Act & X & - & 210 & $t_{RCD}$, $t_{RAS}$\\ 
+		\hline
+		Rd & col for request 6 & - & 220 &  $t_{RAS}$, $t_{CAS}$\\
+		\hline
+		- & - & request 6 data & 223 & $t_{RAS}$ \\
+		\hline
+		- & - & - & 230 & (request 6 done)\\
+		\hline
+	\end{tabular}
+\end{center}
+
+\fbox{\parbox{\linewidth}{Open-page finish time with reordering: 250ns \\
+Closed-page finish time no reordering: 230ns \\ \\
+For this set of requests, closed-page was a better policy choice. This is because it was mostly random
+accesses and closed-page performs better in this scenario.}}
 
 \item \textbf{Data TLB.}
 Consider the following  pseudo code, in which \textbf{X} and \textbf{Y} are allocated as contiguous integer arrays in memory and are aligned to the 4KB boundaries.
