@@ -188,7 +188,8 @@
                               obj-type
                               t-classes
                               obj-expr)]
-             [else (type-error obj-expr "object")]))]))))
+             [else (type-error obj-expr "object")]))]
+        [(if0I tst thn els) ....]))))
 
 (define (typecheck-cast [cast-type : Symbol]
                         [obj-type : Type]

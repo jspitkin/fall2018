@@ -21,7 +21,10 @@
           [method-name : Symbol]
           [arg-expr : Exp])
   (castE [cast-type : Symbol]
-         [obj-expr : Exp]))
+         [obj-expr : Exp])
+  (if0E [tst : Exp]
+        [thn : Exp]
+        [els : Exp]))
 
 (define-type Class
   (classC [super-name : Symbol]
@@ -105,7 +108,15 @@
               (if (is-instance-of? cast-name class-name classes)
                   obj
                   (error 'interp "not a subclass"))]
-             [else (error 'interp "not an object")]))]))))
+             [else (error 'interp "not an object")]))]
+        [(if0E tst thn els)
+         (local [(define tst-val (recur tst))]
+           (type-case Value tst-val
+             [(numV n)
+              (if (equal? 0 n)
+                  (recur thn)
+                  (recur els))]
+             [else (error 'interp "not a number")]))]))))
 
 (define (call-method class-name method-name classes
                      obj arg-val)
@@ -164,7 +175,7 @@
                                          (ssendE (thisE) 'Posn 'mdist (argE))))
                    (values 'addDist (ssendE (thisE) 'Posn 'addDist (argE)))))))
 
-  (define dummy-t-class 
+  (define dummy-class 
     (values 'Dummy
             (classC
              'Object
@@ -175,7 +186,7 @@
   (define posn531 (newE 'Posn3D (list (numE 5) (numE 3) (numE 1))))
 
   (define (interp-posn a)
-    (interp a (list posn-class posn3D-class dummy-t-class) (numV -1) (numV -1))))
+    (interp a (list posn-class posn3D-class dummy-class) (numV -1) (numV -1))))
 
 ;; ----------------------------------------
 
@@ -203,7 +214,17 @@
         (numV 18))
   (test (interp-posn (castE 'Posn3D (newE 'Posn (list (numE 2) (numE 7)))))
         (objV 'Posn (list (numV 2) (numV 7))))
+  (test (interp-posn (if0E (numE 0)
+                           (newE 'Posn (list (numE 1) (numE 2)))
+                           (newE 'Posn (list (numE 3) (numE 4)))))
+        (objV 'Posn (list (numV 1) (numV 2))))
+  (test (interp-posn (if0E (numE 1)
+                           (newE 'Posn (list (numE 1) (numE 2)))
+                           (newE 'Posn3D (list (numE 3) (numE 4) (numE 5)))))
+        (objV 'Posn3D (list (numV 3) (numV 4) (numV 5))))
 
+  (test/exn (interp-posn (if0E (newE 'Posn (list (numE 1) (numE 2))) (numE 1) (numE 2)))
+            "not a number")
   (test/exn (interp-posn (castE 'Dummy (newE 'Posn (list (numE 2) (numE 7)))))
             "not a subclass")
   (test/exn (interp-posn (castE 'Dummy (numE 1)))
