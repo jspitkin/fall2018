@@ -92,6 +92,27 @@
        [else #f])]
     [else (equal? t1 t2)]))
 
+; returns true if t1 is objT and t2 is nullT - false otherwise
+(define (is-null-obj? t1 t2)
+  (type-case Type t1
+    [(objT class-name)
+     (type-case Type t2
+       [(nullT) #t]
+       [else #f])]
+    [else #f]))
+
+(module+ test
+  (test (is-null-obj? (objT 'Posn) (nullT))
+        #t)
+  (test (is-null-obj? (numT) (nullT))
+        #f)
+  (test (is-null-obj? (nullT) (nullT))
+        #f)
+  (test (is-null-obj? (objT 'Posn) (objT 'Posn))
+        #f)
+  (test (is-null-obj? (objT 'Posn) (numT))
+        #f))
+
 (module+ test
   (define a-t-class (values 'A (classT 'Object empty empty)))
   (define b-t-class (values 'B (classT 'A empty empty)))
@@ -151,7 +172,7 @@
                     (foldl (lambda (b r) (and r b))
                            #t
                            (map2 (lambda (t1 t2) 
-                                   (is-subtype? t1 t2 t-classes))
+                                   (or (is-subtype? t1 t2 t-classes) (is-null-obj? t2 t1)))
                                  arg-types
                                  field-types)))
                (objT class-name)
@@ -162,6 +183,7 @@
             (find-field-in-tree field-name
                                 class-name
                                 t-classes)]
+           [(nullT) (type-error obj-expr "object")]
            [else (type-error obj-expr "object")])]
         [(sendI obj-expr method-name arg-expr)
          (local [(define obj-type (recur obj-expr))
@@ -171,8 +193,8 @@
               (typecheck-send class-name method-name
                               arg-expr arg-type
                               t-classes)]
-             [else
-              (type-error obj-expr "object")]))]
+             [(nullT) (type-error obj-expr "object")]
+             [else (type-error obj-expr "object")]))]
         [(superI method-name arg-expr)
          (local [(define arg-type (recur arg-expr))
                  (define this-class
@@ -189,13 +211,14 @@
                               obj-type
                               t-classes
                               obj-expr)]
+             [(nullT) (objT cast-type)]
              [else (type-error obj-expr "object")]))]
         [(if0I tst thn els)
          (local [(define tst-type (recur tst))
                  (define thn-type (recur thn))
                  (define els-type (recur els))]
            (typecheck-if0I tst-type thn-type els-type tst els t-classes))]
-        [(nullI) ....]))))
+        [(nullI) (nullT)]))))
 
 (define (typecheck-if0I [tst-type : Type]
                         [thn-type : Type]
@@ -237,7 +260,7 @@
                       class-name
                       t-classes)
     [(methodT arg-type-m result-type body-expr)
-     (if (is-subtype? arg-type arg-type-m t-classes)
+     (if (or (is-subtype? arg-type arg-type-m t-classes) (is-null-obj? arg-type-m arg-type))
          result-type
          (type-error arg-expr (to-string arg-type-m)))]))
 
@@ -380,6 +403,12 @@
                               (newI 'Posn3D (list (numI 0) (numI 1) (numI 3)))
                               (newI 'Posn (list (numI 0) (numI 1)))))
         (objT 'Posn))
+  (test (typecheck-posn (newI 'Square (list (nullI))))
+        (objT 'Square))
+  (test (typecheck-posn (sendI new-posn531 'addDist (nullI)))
+        (numT))
+  (test (typecheck-posn (castI 'Posn (nullI)))
+        (objT 'Posn))
 
   (test (typecheck-posn (newI 'Square (list (newI 'Posn (list (numI 0) (numI 1))))))
         (objT 'Square))
@@ -390,6 +419,22 @@
                    empty)
         (numT))
 
+  (test/exn (typecheck-posn (getI (nullI) 'x))
+            "no type")
+  (test/exn (typecheck-posn (sendI (nullI) 'm (numI 0)))
+            "no type")
+  (test/exn (typecheck-posn (if0I (nullI) (numI 1) (numI 2)))
+            "no type")
+  (test/exn (typecheck-posn (newI 'Posn (list (nullI) (numI 7))))
+            "no type")
+  (test/exn (typecheck-posn (plusI (nullI) (numI 1)))
+            "no type")
+  (test/exn (typecheck-posn (plusI (numI 1) (nullI)))
+            "no type")
+  (test/exn (typecheck-posn (multI (nullI) (numI 1)))
+            "no type")
+  (test/exn (typecheck-posn (multI (numI 1) (nullI)))
+            "no type")
   (test/exn (typecheck-posn (if0I (newI 'Posn (list (numI 0) (numI 1))) (numI 1) (numI 2)))
             "no type")
   (test/exn (typecheck-posn (if0I (numI 1) (numI 2) (newI 'Posn (list (numI 0) (numI 1)))))
