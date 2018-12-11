@@ -15,7 +15,8 @@
 
 (define-type Type
   (numT)
-  (objT [class-name : Symbol]))
+  (objT [class-name : Symbol])
+  (nullT))
 
 (module+ test
   (print-only-errors #t))
@@ -189,7 +190,33 @@
                               t-classes
                               obj-expr)]
              [else (type-error obj-expr "object")]))]
-        [(if0I tst thn els) ....]))))
+        [(if0I tst thn els)
+         (local [(define tst-type (recur tst))
+                 (define thn-type (recur thn))
+                 (define els-type (recur els))]
+           (typecheck-if0I tst-type thn-type els-type tst els t-classes))]
+        [(nullI) ....]))))
+
+(define (typecheck-if0I [tst-type : Type]
+                        [thn-type : Type]
+                        [els-type : Type]
+                        [tst : ExpI]
+                        [els : ExpI]
+                        [t-classes : (Listof (Symbol * ClassT))])
+  (type-case Type tst-type
+    [(numT)
+     (type-case Type thn-type
+       [(numT)
+        (type-case Type els-type
+          [(numT) (numT)]
+          [else (type-error els "object")])]
+       [else
+        (type-case Type els-type
+          [(numT) (type-error els "number")]
+          [else (objT (least-upper-bound (objT-class-name thn-type)
+                                         (objT-class-name els-type)
+                                         t-classes))])])]
+    [else (type-error tst "number")]))
 
 (define (typecheck-cast [cast-type : Symbol]
                         [obj-type : Type]
@@ -282,7 +309,7 @@
                                   (methodT (objT 'Posn) (numT)
                                            (plusI (sendI (thisI) 'mdist (numI 0))
                                                   (sendI (argI) 'mdist (numI 0)))))))))
-
+  
   (define posn3D-t-class 
     (values 'Posn3D
             (classT 'Posn
@@ -291,16 +318,28 @@
                                   (methodT (numT) (numT)
                                            (plusI (getI (thisI) 'z) 
                                                   (superI 'mdist (argI)))))))))
-
+  
+  (define posn4D-t-class
+    (values 'Posn4D
+            (classT 'Posn
+                    (list (values 'z (numT)) (values 'v (numT)))
+                    empty)))
+  
   (define square-t-class 
     (values 'Square
             (classT 'Object
                     (list (values 'topleft (objT 'Posn)))
                     (list))))
 
+  (define dummy-t-class 
+    (values 'Dummy
+            (classT 'Object
+                    (list)
+                    (list))))
+
   (define (typecheck-posn a)
     (typecheck a
-               (list posn-t-class posn3D-t-class square-t-class)))
+               (list posn-t-class posn3D-t-class posn4D-t-class square-t-class dummy-t-class)))
   
   (define new-posn27 (newI 'Posn (list (numI 2) (numI 7))))
   (define new-posn531 (newI 'Posn3D (list (numI 5) (numI 3) (numI 1))))
@@ -317,6 +356,30 @@
         (objT 'Posn))
   (test (typecheck-posn (castI 'Posn3D (newI 'Posn (list (numI 0) (numI 1)))))
         (objT 'Posn3D))
+  (test (typecheck-posn (if0I (numI 0) (numI 1) (numI 2)))
+        (numT))
+  (test (typecheck-posn (if0I (numI 3) (numI 1) (numI 2)))
+        (numT))
+  (test (typecheck-posn (if0I (numI 0)
+                              (newI 'Posn3D (list (numI 0) (numI 1) (numI 3)))
+                              (newI 'Posn3D (list (numI 2) (numI 4) (numI 5)))))
+        (objT 'Posn3D))
+  (test (typecheck-posn (if0I (numI 0)
+                              (newI 'Posn3D (list (numI 0) (numI 1) (numI 3)))
+                              (newI 'Posn4D (list (numI 4) (numI 2) (numI 4) (numI 5)))))
+        (objT 'Posn))
+  (test (typecheck-posn (if0I (numI 0)
+                              (newI 'Posn3D (list (numI 0) (numI 1) (numI 3)))
+                              (newI 'Dummy empty)))
+        (objT 'Object))
+  (test (typecheck-posn (if0I (numI 0)
+                              (newI 'Posn (list (numI 0) (numI 1)))
+                              (newI 'Posn3D (list (numI 0) (numI 1) (numI 3)))))
+        (objT 'Posn))
+  (test (typecheck-posn (if0I (numI 0)
+                              (newI 'Posn3D (list (numI 0) (numI 1) (numI 3)))
+                              (newI 'Posn (list (numI 0) (numI 1)))))
+        (objT 'Posn))
 
   (test (typecheck-posn (newI 'Square (list (newI 'Posn (list (numI 0) (numI 1))))))
         (objT 'Square))
@@ -327,9 +390,15 @@
                    empty)
         (numT))
 
+  (test/exn (typecheck-posn (if0I (newI 'Posn (list (numI 0) (numI 1))) (numI 1) (numI 2)))
+            "no type")
+  (test/exn (typecheck-posn (if0I (numI 1) (numI 2) (newI 'Posn (list (numI 0) (numI 1)))))
+            "no type")
+  (test/exn (typecheck-posn (if0I (numI 1) (newI 'Posn (list (numI 0) (numI 1))) (numI 2)))
+            "no type")
   (test/exn (typecheck-posn (castI 'Square (newI 'Posn (list (numI 0) (numI 1)))))
             "no type")
-  (test/exn (typecheck-posn (castI 'Square (numI 0)))
+  (test/exn (typecheck-posn (castI 'Square (numI 0))) 
             "no type")
   (test/exn (typecheck-posn (sendI (numI 10) 'mdist (numI 0)))
             "no type")
@@ -406,3 +475,32 @@
         (numV 18))
   (test (interp-t-posn (sendI new-posn27 'addDist new-posn531))
         (numV 18)))
+
+(define (least-upper-bound class1 class2 t-classes) : Symbol
+  (if (eq? class1 class2)
+      class1
+      (if (eq? class1 'Object)
+          'Object
+          (if (is-subclass? class2 class1 t-classes)
+              class1
+              (least-upper-bound (classT-super-name (find t-classes class1))
+                                 class2
+                                 t-classes)))))
+
+(module+ test
+  (test (least-upper-bound 'Object
+                           'Object
+                           (list posn-t-class posn3D-t-class posn4D-t-class dummy-t-class))
+        'Object)
+  (test (least-upper-bound 'Posn
+                           'Posn3D
+                           (list posn-t-class posn3D-t-class posn4D-t-class dummy-t-class))
+        'Posn)
+  (test (least-upper-bound 'Posn3D
+                           'Posn4D
+                           (list posn-t-class posn3D-t-class posn4D-t-class dummy-t-class))
+        'Posn)
+  (test (least-upper-bound 'Posn3D
+                           'Dummy
+                           (list posn-t-class posn3D-t-class posn4D-t-class dummy-t-class))
+        'Object))

@@ -26,7 +26,8 @@
          [obj-expr : ExpI])
   (if0I   [tst : ExpI]
          [thn : ExpI]
-         [els : ExpI]))
+         [els : ExpI])
+  (nullI))
 
 (define-type ClassI
   (classI [super-name : Symbol]
@@ -66,7 +67,8 @@
       [(if0I tst thn els)
        (if0E (recur tst)
              (recur thn)
-             (recur els))])))
+             (recur els))]
+      [(nullI) (nullE)])))
 
 (module+ test
   (test (exp-i->c (numI 10) 'Object)
@@ -88,7 +90,15 @@
   (test (exp-i->c (superI 'mdist (numI 2)) 'Posn)
         (ssendE (thisE) 'Posn 'mdist (numE 2)))
   (test (exp-i->c (castI 'Pos3D (numI 1)) 'Object)
-        (castE 'Pos3D (numE 1))))
+        (castE 'Pos3D (numE 1)))
+  (test (exp-i->c (if0I (numI 0)
+                  (newI 'Object (list (numI 1)))
+                  (newI 'Object (list (numI 1)))) 'Object)
+        (if0E (numE 0)
+              (newE 'Object (list (numE 1)))
+              (newE 'Object (list (numE 1))))) 
+  (test (exp-i->c (nullI) 'Object)
+        (nullE)))
 
 ;; ----------------------------------------
 

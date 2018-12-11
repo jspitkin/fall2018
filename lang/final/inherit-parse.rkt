@@ -63,6 +63,7 @@
     (if0I (parse (second (s-exp->list s)))
           (parse (third (s-exp->list s)))
           (parse (fourth (s-exp->list s))))]
+   [(s-exp-match? `null s) (nullI)]
    [else (error 'parse "invalid input")]))
 
 (module+ test
@@ -86,6 +87,12 @@
         (superI 'm (numI 1)))
   (test (parse `{cast foo 1})
         (castI 'foo (numI 1)))
+  (test (parse `{if0 0 {new Posn 1 2} {new Posn 1 2}})
+        (if0I (numI 0)
+              (newI 'Posn (list (numI 1) (numI 2)))
+              (newI 'Posn (list (numI 1) (numI 2)))))
+  (test (parse `null)
+        (nullI))
   (test/exn (parse `x)
             "invalid input")
 
@@ -118,7 +125,8 @@
                      (map parse-class classes))])
     (type-case Value v
       [(numV n) (number->s-exp n)]
-      [(objV class-name field-vals) `object])))
+      [(objV class-name field-vals) `object]
+      [(nullV) ....])))
 
 (module+ test
   (test (interp-prog

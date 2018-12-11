@@ -1,6 +1,5 @@
 #lang plait
 
-
 (define-type Exp
   (numE [n : Number])
   (plusE [lhs : Exp]
@@ -24,7 +23,8 @@
          [obj-expr : Exp])
   (if0E [tst : Exp]
         [thn : Exp]
-        [els : Exp]))
+        [els : Exp])
+  (nullE))
 
 (define-type Class
   (classC [super-name : Symbol]
@@ -34,7 +34,8 @@
 (define-type Value
   (numV [n : Number])
   (objV [class-name : Symbol]
-        [field-values : (Listof Value)]))
+        [field-values : (Listof Value)])
+  (nullV))
 
 (module+ test
   (print-only-errors #t))
@@ -116,7 +117,8 @@
               (if (equal? 0 n)
                   (recur thn)
                   (recur els))]
-             [else (error 'interp "not a number")]))]))))
+             [else (error 'interp "not a number")]))]
+        [(nullE) (nullV)]))))
 
 (define (call-method class-name method-name classes
                      obj arg-val)
@@ -191,6 +193,9 @@
 ;; ----------------------------------------
 
 (module+ test
+  (test (interp (nullE)
+                empty (objV 'Object empty) (numV 0))
+        (nullV))
   (test (interp (numE 10) 
                 empty (objV 'Object empty) (numV 0))
         (numV 10))
