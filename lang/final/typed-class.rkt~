@@ -82,15 +82,6 @@
        [else #f])]
     [else (equal? t1 t2)]))
 
-(define (is-supertype? t1 t2 t-classes)
-  (type-case Type t1
-    [(objT name1)
-     (type-case Type t2
-       [(objT name2)
-        (is-subclass? name2 name1 t-classes)]
-       [else #f])]
-    [else (equal? t1 t2)]))
-
 (module+ test
   (define a-t-class (values 'A (classT 'Object empty empty)))
   (define b-t-class (values 'B (classT 'A empty empty)))
@@ -111,16 +102,6 @@
   (test (is-subtype? (objT 'A) (objT 'B) (list a-t-class b-t-class))
         #f)
   (test (is-subtype? (objT 'B) (objT 'A) (list a-t-class b-t-class))
-        #t)
-  (test (is-supertype? (numT) (numT) empty)
-        #t)
-  (test (is-supertype? (objT 'Object) (numT) empty)
-        #f)
-  (test (is-supertype? (objT 'A) (objT 'B) (list a-t-class b-t-class))
-        #t)
-  (test (is-supertype? (objT 'B) (objT 'A) (list a-t-class b-t-class))
-        #f)
-  (test (is-supertype? (objT 'Object) (objT 'B) (list a-t-class b-t-class))
         #t))
 
 ;; ----------------------------------------
@@ -179,25 +160,7 @@
            (typecheck-send (classT-super-name this-class)
                            method-name
                            arg-expr arg-type
-                           t-classes))]
-        [(castI cast-type obj-expr)
-         (local [(define obj-type (recur obj-expr))]
-           (type-case Type obj-type
-             [(objT class-name)
-              (typecheck-cast cast-type
-                              obj-type
-                              t-classes
-                              obj-expr)]
-             [else (type-error obj-expr "object")]))]))))
-
-(define (typecheck-cast [cast-type : Symbol]
-                        [obj-type : Type]
-                        [t-classes : (Listof (Symbol * ClassT))]
-                        [obj-expr : ExpI])
-  (if (or (is-subtype? (objT cast-type) obj-type t-classes)
-          (is-supertype? (objT cast-type) obj-type t-classes))
-      (objT cast-type)
-      (type-error obj-expr "object")))
+                           t-classes))]))))
 
 (define (typecheck-send [class-name : Symbol]
                         [method-name : Symbol]
@@ -312,10 +275,6 @@
         (numT))  
   (test (typecheck-posn (sendI new-posn27 'addDist new-posn531))
         (numT))
-  (test (typecheck-posn (castI 'Posn (newI 'Posn3D (list (numI 0) (numI 1) (numI 3)))))
-        (objT 'Posn))
-  (test (typecheck-posn (castI 'Posn3D (newI 'Posn (list (numI 0) (numI 1)))))
-        (objT 'Posn3D))
 
   (test (typecheck-posn (newI 'Square (list (newI 'Posn (list (numI 0) (numI 1))))))
         (objT 'Square))
@@ -326,10 +285,6 @@
                    empty)
         (numT))
 
-  (test/exn (typecheck-posn (castI 'Square (newI 'Posn (list (numI 0) (numI 1)))))
-            "no type")
-  (test/exn (typecheck-posn (castI 'Square (numI 0)))
-            "no type")
   (test/exn (typecheck-posn (sendI (numI 10) 'mdist (numI 0)))
             "no type")
   (test/exn (typecheck-posn (sendI new-posn27 'mdist new-posn27))

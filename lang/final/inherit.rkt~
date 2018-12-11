@@ -21,9 +21,7 @@
          [method-name : Symbol]
          [arg-expr : ExpI])
   (superI [method-name : Symbol]
-          [arg-expr : ExpI])
-  (castI [cast-type : Symbol]
-         [obj-expr : ExpI]))
+          [arg-expr : ExpI]))
 
 (define-type ClassI
   (classI [super-name : Symbol]
@@ -56,10 +54,7 @@
        (ssendE (thisE)
                super-name
                method-name
-               (recur arg-expr))]
-      [(castI class-type obj-expr)
-       (castE class-type
-              (recur obj-expr))])))
+               (recur arg-expr))])))
 
 (module+ test
   (test (exp-i->c (numI 10) 'Object)
