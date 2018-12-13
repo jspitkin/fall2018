@@ -27,7 +27,10 @@
   (if0I   [tst : ExpI]
          [thn : ExpI]
          [els : ExpI])
-  (nullI))
+  (nullI)
+  (setI [obj-expr : ExpI]
+        [field-name : Symbol]
+        [set-expr : ExpI]))
 
 (define-type ClassI
   (classI [super-name : Symbol]
@@ -68,7 +71,11 @@
        (if0E (recur tst)
              (recur thn)
              (recur els))]
-      [(nullI) (nullE)])))
+      [(nullI) (nullE)]
+      [(setI obj-expr field-name set-expr)
+       (setE (recur obj-expr)
+             field-name
+             (recur set-expr))])))
 
 (module+ test
   (test (exp-i->c (numI 10) 'Object)
@@ -98,7 +105,13 @@
               (newE 'Object (list (numE 1)))
               (newE 'Object (list (numE 1))))) 
   (test (exp-i->c (nullI) 'Object)
-        (nullE)))
+        (nullE))
+  (test (exp-i->c (setI (newI 'Object (list (numI 1)))
+                        'x
+                        (numI 2)) 'Object)
+        (setE (newE 'Object (list (numE 1)))
+              'x
+              (numE 2))))
 
 ;; ----------------------------------------
 

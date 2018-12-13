@@ -218,14 +218,20 @@
                  (define thn-type (recur thn))
                  (define els-type (recur els))]
            (typecheck-if0I tst-type thn-type els-type tst els t-classes))]
-        [(nullI) (nullT)]))))
+        [(nullI) (nullT)]
+        [(setI obj-expr field-name set-expr)
+         (type-case Type (recur obj-expr)
+           [(objT class-name)
+            (if (is-subtype? (recur set-expr)
+                             (find-field-in-tree field-name class-name t-classes)
+                             t-classes)
+                (objT class-name)
+                (type-error set-expr "object"))]
+           [(nullT) (type-error obj-expr "object")]
+           [else (type-error obj-expr "object")])]))))
 
-(define (typecheck-if0I [tst-type : Type]
-                        [thn-type : Type]
-                        [els-type : Type]
-                        [tst : ExpI]
-                        [els : ExpI]
-                        [t-classes : (Listof (Symbol * ClassT))])
+(define (typecheck-if0I [tst-type : Type] [thn-type : Type] [els-type : Type]
+                        [tst : ExpI] [els : ExpI] [t-classes : (Listof (Symbol * ClassT))])
   (type-case Type tst-type
     [(numT)
      (type-case Type thn-type
@@ -409,6 +415,14 @@
         (numT))
   (test (typecheck-posn (castI 'Posn (nullI)))
         (objT 'Posn))
+  (test (typecheck-posn (setI (newI 'Posn (list (numI 0) (numI 1)))
+                              'x
+                              (numI 2)))
+        (objT 'Posn))
+  (test (typecheck-posn (setI (newI 'Square (list (newI 'Posn (list (numI 0) (numI 1)))))
+                              'topleft
+                              (newI 'Posn3D (list (numI 2) (numI 3) (numI 4)))))
+        (objT 'Square))
 
   (test (typecheck-posn (newI 'Square (list (newI 'Posn (list (numI 0) (numI 1))))))
         (objT 'Square))
@@ -419,6 +433,22 @@
                    empty)
         (numT))
 
+  (test/exn (typecheck-posn (setI (numI 1)
+                                  'x
+                                  (numI 2)))
+            "no type")
+  (test/exn (typecheck-posn (setI (nullI)
+                                  'x
+                                  (numI 1)))
+            "no type")
+  (test/exn (typecheck-posn (setI (newI 'Posn (list (numI 0) (numI 1)))
+                                  'x
+                                  (newI 'Posn (list (numI 0) (numI 1)))))
+            "no type")
+  (test/exn (typecheck-posn (setI (newI 'Square (list (newI 'Posn (list (numI 0) (numI 1)))))
+                                  'topleft
+                                  (newI 'Square (list (newI 'Posn (list (numI 0) (numI 1)))))))
+            "no type")
   (test/exn (typecheck-posn (getI (nullI) 'x))
             "no type")
   (test/exn (typecheck-posn (sendI (nullI) 'm (numI 0)))

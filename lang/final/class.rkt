@@ -24,7 +24,10 @@
   (if0E [tst : Exp]
         [thn : Exp]
         [els : Exp])
-  (nullE))
+  (nullE)
+  (setE [obj-expr : Exp]
+        [field-name : Symbol]
+        [set-expr : Exp]))
 
 (define-type Class
   (classC [super-name : Symbol]
@@ -34,7 +37,7 @@
 (define-type Value
   (numV [n : Number])
   (objV [class-name : Symbol]
-        [field-values : (Listof Value)])
+        [field-values : (Listof (Boxof Value))])
   (nullV))
 
 (module+ test
@@ -75,7 +78,7 @@
         [(argE) arg-val]
         [(newE class-name field-exprs)
          (local [(define c (find classes class-name))
-                 (define vals (map recur field-exprs))]
+                 (define vals (map box (map recur field-exprs)))]
            (if (= (length vals) (length (classC-field-names c)))
                (objV class-name vals)
                (error 'interp "wrong field count")))]
@@ -84,10 +87,10 @@
            [(objV class-name field-vals)
             (type-case Class (find classes class-name)
               [(classC super-name field-names methods)
-               (find (map2 (lambda (n v) (values n v))
-                           field-names
-                           field-vals)
-                     field-name)])]
+               (unbox (find (map2 (lambda (n v) (values n v))
+                                  field-names
+                                  field-vals)
+                            field-name))])]
            [else (error 'interp "not an object")])]
         [(sendE obj-expr method-name arg-expr)
          (local [(define obj (recur obj-expr))
@@ -118,7 +121,8 @@
                   (recur thn)
                   (recur els))]
              [else (error 'interp "not a number")]))]
-        [(nullE) (nullV)]))))
+        [(nullE) (nullV)]
+        [(setE obj-expr field-name set-expr) ....]))))
 
 (define (call-method class-name method-name classes
                      obj arg-val)
@@ -206,7 +210,7 @@
                 empty (objV 'Object empty) (numV 0))
         (numV 70))
   (test (interp-posn (newE 'Posn (list (numE 2) (numE 7))))
-        (objV 'Posn (list (numV 2) (numV 7))))
+        (objV 'Posn (list (box (numV 2)) (box (numV 7)))))
   (test (interp-posn (sendE posn27 'mdist (numE 0)))
         (numV 9))
   (test (interp-posn (sendE posn27 'addX (numE 10)))
@@ -218,15 +222,15 @@
   (test (interp-posn (sendE posn531 'addDist posn27))
         (numV 18))
   (test (interp-posn (castE 'Posn3D (newE 'Posn (list (numE 2) (numE 7)))))
-        (objV 'Posn (list (numV 2) (numV 7))))
+        (objV 'Posn (list (box (numV 2)) (box (numV 7)))))
   (test (interp-posn (if0E (numE 0)
                            (newE 'Posn (list (numE 1) (numE 2)))
                            (newE 'Posn (list (numE 3) (numE 4)))))
-        (objV 'Posn (list (numV 1) (numV 2))))
+        (objV 'Posn (list (box (numV 1)) (box (numV 2)))))
   (test (interp-posn (if0E (numE 1)
                            (newE 'Posn (list (numE 1) (numE 2)))
                            (newE 'Posn3D (list (numE 3) (numE 4) (numE 5)))))
-        (objV 'Posn3D (list (numV 3) (numV 4) (numV 5))))
+        (objV 'Posn3D (list (box (numV 3)) (box (numV 4)) (box (numV 5)))))
 
   (test/exn (interp-posn (if0E (newE 'Posn (list (numE 1) (numE 2))) (numE 1) (numE 2)))
             "not a number")

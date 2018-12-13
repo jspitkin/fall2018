@@ -126,7 +126,7 @@
     (type-case Value v
       [(numV n) (number->s-exp n)]
       [(objV class-name field-vals) `object]
-      [(nullV) ....])))
+      [(nullV) `null])))
 
 (module+ test
   (test (interp-prog
@@ -150,4 +150,8 @@
                             {super mdist arg}}]})
         
         `{send {new Posn3D 5 3 1} addDist {new Posn 2 7}})
-       `18))
+       `18)
+  (test (interp-prog
+         empty
+         `null)
+        `null))
