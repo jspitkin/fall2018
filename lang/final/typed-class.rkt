@@ -433,6 +433,10 @@
                    empty)
         (numT))
 
+  (test/exn (typecheck-posn (setI (newI 'Posn (list (numI 0) (numI 1)))
+                              'a
+                              (numI 2)))
+            "find: not found: a")
   (test/exn (typecheck-posn (setI (numI 1)
                                   'x
                                   (numI 2)))

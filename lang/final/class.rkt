@@ -122,7 +122,20 @@
                   (recur els))]
              [else (error 'interp "not a number")]))]
         [(nullE) (nullV)]
-        [(setE obj-expr field-name set-expr) ....]))))
+        [(setE obj-expr field-name set-expr)
+         (local [(define set-val (recur set-expr))]
+           (type-case Value (recur obj-expr)
+             [(objV class-name field-vals)
+              (type-case Class (find classes class-name)
+                [(classC super-name field-names methods)
+                 (begin
+                   (set-box! (find (map2 (lambda (n v) (values n v))
+                                         field-names
+                                         field-vals)
+                                   field-name)
+                             set-val)
+                   set-val)])]
+             [else (error 'interp "not an object")]))]))))
 
 (define (call-method class-name method-name classes
                      obj arg-val)
@@ -185,14 +198,22 @@
     (values 'Dummy
             (classC
              'Object
-             (list)
-             (list))))
+             (list 'bin)
+             (list (values 'getBin (getE (thisE) 'bin))))))
+
+  (define bin-class
+    (values 'Bin
+            (classC
+             'Object
+             (list 'x)
+             empty)))
 
   (define posn27 (newE 'Posn (list (numE 2) (numE 7))))
   (define posn531 (newE 'Posn3D (list (numE 5) (numE 3) (numE 1))))
+  (define dummyBin (newE 'Dummy (list (newE 'Bin (list (numE 0))))))
 
   (define (interp-posn a)
-    (interp a (list posn-class posn3D-class dummy-class) (numV -1) (numV -1))))
+    (interp a (list posn-class posn3D-class dummy-class bin-class) (numV -1) (numV -1))))
 
 ;; ----------------------------------------
 
@@ -231,7 +252,14 @@
                            (newE 'Posn (list (numE 1) (numE 2)))
                            (newE 'Posn3D (list (numE 3) (numE 4) (numE 5)))))
         (objV 'Posn3D (list (box (numV 3)) (box (numV 4)) (box (numV 5)))))
-
+  (test (interp-posn (setE (newE 'Posn (list (numE 1) (numE 2))) 'x (numE 3)))
+        (numV 3))
+  (test (interp (sendE (thisE) 'getBin (setE (getE (thisE) 'bin) 'x (numE 1)))
+                (list dummy-class bin-class)
+                (objV 'Dummy (list (box (objV 'Bin (list (box (numV 0)))))))
+                (numV -1))
+        (objV 'Bin (list (box (numV 1)))))
+  
   (test/exn (interp-posn (if0E (newE 'Posn (list (numE 1) (numE 2))) (numE 1) (numE 2)))
             "not a number")
   (test/exn (interp-posn (castE 'Dummy (newE 'Posn (list (numE 2) (numE 7)))))
@@ -241,6 +269,8 @@
   (test/exn (interp-posn (plusE (numE 1) posn27))
             "not a number")
   (test/exn (interp-posn (getE (numE 1) 'x))
+            "not an object")
+  (test/exn (interp-posn (setE (numE 1) 'x (numE 1)))
             "not an object")
   (test/exn (interp-posn (sendE (numE 1) 'mdist (numE 0)))
             "not an object")
