@@ -8,7 +8,8 @@
          [rhs : Exp])
   (argE)
   (thisE)
-  (newE [class-name : Symbol])
+  (newE [class-name : Symbol]
+        [args : (Listof Exp)])
   (getE [obj-expr : Exp]
         [field-name : Symbol])
   (sendE [obj-expr : Exp]
@@ -75,11 +76,13 @@
         [(multE l r) (num* (recur l) (recur r))]
         [(thisE) this-val]
         [(argE) arg-val]
-        [(newE class-name)
-         (objV class-name
-               (create-zero-list (length (classC-field-names (find classes class-name)))
-                                 empty))]
-         [(getE obj-expr field-name)
+        [(newE class-name field-exprs)
+         (local [(define c (find classes class-name))
+                 (define vals (map box (map recur field-exprs)))]
+           (if (= (length vals) (length (classC-field-names c)))
+               (objV class-name vals)
+               (error 'interp "wrong field count")))]
+        [(getE obj-expr field-name)
          (type-case Value (recur obj-expr)
            [(objV class-name field-vals)
             (type-case Class (find classes class-name)
@@ -163,19 +166,6 @@
           #f
           (is-instance-of? (classC-super-name (find classes class-name)) search-class-name classes))))
 
-(define (create-zero-list [length : Number] [list : (Listof (Boxof Value))])
-  (if (eq? length 0)
-      list
-      (create-zero-list (- length 1) (cons (box (numV 0)) list))))
-
-(module+ test
-  (test (create-zero-list 0 empty)
-        empty)
-  (test (create-zero-list 1 empty)
-        (list (box (numV 0))))
-  (test (create-zero-list 3 empty)
-        (list (box (numV 0)) (box (numV 0)) (box (numV 0)))))
-
 ;; ----------------------------------------
 ;; Examples
 
@@ -193,7 +183,7 @@
                    (values 'addX
                            (plusE (getE (thisE) 'x) (argE)))
                    (values 'multY (multE (argE) (getE (thisE) 'y)))
-                   (values 'factory12 (newE 'Posn))))))
+                   (values 'factory12 (newE 'Posn (list (numE 1) (numE 2))))))))
     
   (define posn3D-class
     (values 'Posn3D
@@ -218,8 +208,9 @@
              (list 'x)
              empty)))
 
-  (define posn27 (newE 'Posn))
-  (define posn531 (newE 'Posn3D))
+  (define posn27 (newE 'Posn (list (numE 2) (numE 7))))
+  (define posn531 (newE 'Posn3D (list (numE 5) (numE 3) (numE 1))))
+  (define dummyBin (newE 'Dummy (list (newE 'Bin (list (numE 0))))))
 
   (define (interp-posn a)
     (interp a (list posn-class posn3D-class dummy-class bin-class) (numV -1) (numV -1))))
@@ -239,29 +230,29 @@
   (test (interp (multE (numE 10) (numE 7))
                 empty (objV 'Object empty) (numV 0))
         (numV 70))
-  (test (interp-posn (newE 'Posn))
-        (objV 'Posn (list (box (numV 0)) (box (numV 0)))))
+  (test (interp-posn (newE 'Posn (list (numE 2) (numE 7))))
+        (objV 'Posn (list (box (numV 2)) (box (numV 7)))))
   (test (interp-posn (sendE posn27 'mdist (numE 0)))
-        (numV 0))
+        (numV 9))
   (test (interp-posn (sendE posn27 'addX (numE 10)))
-        (numV 10))
+        (numV 12))
   (test (interp-posn (sendE (ssendE posn27 'Posn 'factory12 (numE 0))
                             'multY
                             (numE 15)))
-        (numV 0))
+        (numV 30))
   (test (interp-posn (sendE posn531 'addDist posn27))
-        (numV 0))
-  (test (interp-posn (castE 'Posn3D (newE 'Posn)))
-        (objV 'Posn (list (box (numV 0)) (box (numV 0)))))
+        (numV 18))
+  (test (interp-posn (castE 'Posn3D (newE 'Posn (list (numE 2) (numE 7)))))
+        (objV 'Posn (list (box (numV 2)) (box (numV 7)))))
   (test (interp-posn (if0E (numE 0)
-                           (newE 'Posn)
-                           (newE 'Posn)))
-        (objV 'Posn (list (box (numV 0)) (box (numV 0)))))
+                           (newE 'Posn (list (numE 1) (numE 2)))
+                           (newE 'Posn (list (numE 3) (numE 4)))))
+        (objV 'Posn (list (box (numV 1)) (box (numV 2)))))
   (test (interp-posn (if0E (numE 1)
-                           (newE 'Posn)
-                           (newE 'Posn3D)))
-        (objV 'Posn3D (list (box (numV 0)) (box (numV 0)) (box (numV 0)))))
-  (test (interp-posn (setE (newE 'Posn) 'x (numE 3)))
+                           (newE 'Posn (list (numE 1) (numE 2)))
+                           (newE 'Posn3D (list (numE 3) (numE 4) (numE 5)))))
+        (objV 'Posn3D (list (box (numV 3)) (box (numV 4)) (box (numV 5)))))
+  (test (interp-posn (setE (newE 'Posn (list (numE 1) (numE 2))) 'x (numE 3)))
         (numV 3))
   (test (interp (sendE (thisE) 'getBin (setE (getE (thisE) 'bin) 'x (numE 1)))
                 (list dummy-class bin-class)
@@ -269,9 +260,9 @@
                 (numV -1))
         (objV 'Bin (list (box (numV 1)))))
   
-  (test/exn (interp-posn (if0E (newE 'Posn) (numE 1) (numE 2)))
+  (test/exn (interp-posn (if0E (newE 'Posn (list (numE 1) (numE 2))) (numE 1) (numE 2)))
             "not a number")
-  (test/exn (interp-posn (castE 'Dummy (newE 'Posn)))
+  (test/exn (interp-posn (castE 'Dummy (newE 'Posn (list (numE 2) (numE 7)))))
             "not a subclass")
   (test/exn (interp-posn (castE 'Dummy (numE 1)))
             "not an object")
@@ -284,4 +275,6 @@
   (test/exn (interp-posn (sendE (numE 1) 'mdist (numE 0)))
             "not an object")
   (test/exn (interp-posn (ssendE (numE 1) 'Posn 'mdist (numE 0)))
-            "not an object"))
+            "not an object")
+  (test/exn (interp-posn (newE 'Posn (list (numE 0))))
+            "wrong field count"))
